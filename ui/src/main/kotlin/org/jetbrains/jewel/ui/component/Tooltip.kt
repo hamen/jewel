@@ -25,10 +25,27 @@ import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalContentColor
 import org.jetbrains.jewel.foundation.theme.OverrideDarkMode
+import org.jetbrains.jewel.ui.component.styling.TooltipMetrics
 import org.jetbrains.jewel.ui.component.styling.TooltipStyle
 import org.jetbrains.jewel.ui.theme.tooltipStyle
 import org.jetbrains.jewel.ui.util.isDark
 
+/**
+ * Displays a tooltip when hovering over the content.
+ *
+ * The tooltip is displayed when the mouse hovers over the content for a [kotlin.time.Duration]
+ * specified by the [TooltipMetrics.showDelay] property in the [TooltipStyle].
+ *
+ * The placement is fixed by default, enforced by the [FixedCursorPoint] placement.
+ * The tooltip won't follow the mouse cursor, when moving over the content,
+ * and it will be displayed indefinitely as long as the mouse is hovering over the content.
+ *
+ * @param tooltip The Composable function that defines the tooltip content. For example, `Text("I'm a tooltip")`.
+ * @param modifier The modifier to be applied to the tooltip component.
+ * @param style The style to be applied to the tooltip.
+ * @param tooltipPlacement The placement of the tooltip relative to the content.
+ * @param content The Composable function that defines the content.
+ */
 @Composable
 public fun Tooltip(
     tooltip: @Composable () -> Unit,
