@@ -41,6 +41,8 @@ public fun HorizontalSplitLayout(
     minRatio: Float = 0f,
     maxRatio: Float = 1f,
     initialDividerPosition: Dp = 300.dp,
+    minLeftPanelWidth: Dp = 100.dp,
+    minRightPanelWidth: Dp = 100.dp
 ) {
     val density = LocalDensity.current
     var dividerX by remember { mutableStateOf(with(density) { initialDividerPosition.roundToPx() }) }
@@ -75,44 +77,56 @@ public fun HorizontalSplitLayout(
         },
     ) { measurables, incomingConstraints ->
         val availableWidth = incomingConstraints.maxWidth
-        val actualDividerX =
-            dividerX.coerceIn(0, availableWidth)
+        val minLeftPanelWidthPx = with(density) { minLeftPanelWidth.roundToPx() }
+        val minRightPanelWidthPx = with(density) { minRightPanelWidth.roundToPx() }
+        val dividerWidthPx = with(density) { dividerThickness.roundToPx() }
+
+        val totalMinWidth = minLeftPanelWidthPx + minRightPanelWidthPx + dividerWidthPx
+
+        val actualDividerX = if (availableWidth >= totalMinWidth) {
+            dividerX
+                .coerceIn(minLeftPanelWidthPx, availableWidth - minRightPanelWidthPx - dividerWidthPx)
                 .coerceIn(
                     (availableWidth * minRatio).roundToInt(),
-                    (availableWidth * maxRatio).roundToInt(),
+                    (availableWidth * maxRatio).roundToInt()
                 )
+        } else {
+            // If the available width is less then total minimum width, spread proportionally
+            (availableWidth * minLeftPanelWidthPx.toFloat() / totalMinWidth).roundToInt()
+        }
 
         val dividerMeasurable = measurables.single { it.layoutId == "divider" }
-        val dividerPlaceable =
-            dividerMeasurable.measure(
-                Constraints.fixed(dividerThickness.roundToPx(), incomingConstraints.maxHeight),
-            )
+        val dividerPlaceable = dividerMeasurable.measure(
+            Constraints.fixed(dividerWidthPx, incomingConstraints.maxHeight)
+        )
 
-        val firstComponentConstraints =
-            Constraints.fixed((actualDividerX).coerceAtLeast(0), incomingConstraints.maxHeight)
-        val firstPlaceable =
-            measurables.find { it.layoutId == "first" }
-                ?.measure(firstComponentConstraints)
-                ?: error("No first component found. Have you applied the provided Modifier to it?")
+        val firstComponentConstraints = Constraints(
+            minWidth = 0,
+            maxWidth = actualDividerX,
+            minHeight = incomingConstraints.minHeight,
+            maxHeight = incomingConstraints.maxHeight
+        )
+        val firstPlaceable = measurables.find { it.layoutId == "first" }
+            ?.measure(firstComponentConstraints)
+            ?: error("No first component found. Have you applied the provided Modifier to it?")
 
-        val secondComponentConstraints =
-            Constraints.fixed(
-                width = availableWidth - actualDividerX + dividerPlaceable.width,
-                height = incomingConstraints.maxHeight,
-            )
-        val secondPlaceable =
-            measurables.find { it.layoutId == "second" }
-                ?.measure(secondComponentConstraints)
-                ?: error("No second component found. Have you applied the provided Modifier to it?")
+        val secondComponentConstraints = Constraints(
+            minWidth = 0,
+            maxWidth = availableWidth - actualDividerX - dividerWidthPx,
+            minHeight = incomingConstraints.minHeight,
+            maxHeight = incomingConstraints.maxHeight
+        )
+        val secondPlaceable = measurables.find { it.layoutId == "second" }
+            ?.measure(secondComponentConstraints)
+            ?: error("No second component found. Have you applied the provided Modifier to it?")
 
-        val dividerHandlePlaceable =
-            measurables.single { it.layoutId == "divider-handle" }
-                .measure(Constraints.fixedHeight(incomingConstraints.maxHeight))
+        val dividerHandlePlaceable = measurables.single { it.layoutId == "divider-handle" }
+            .measure(Constraints.fixedHeight(incomingConstraints.maxHeight))
 
         layout(availableWidth, incomingConstraints.maxHeight) {
             firstPlaceable.placeRelative(0, 0)
-            dividerPlaceable.placeRelative(actualDividerX - dividerPlaceable.width / 2, 0)
-            secondPlaceable.placeRelative(actualDividerX + dividerPlaceable.width, 0)
+            dividerPlaceable.placeRelative(actualDividerX, 0)
+            secondPlaceable.placeRelative(actualDividerX + dividerWidthPx, 0)
             dividerHandlePlaceable.placeRelative(actualDividerX - dividerHandlePlaceable.measuredWidth / 2, 0)
         }
     }

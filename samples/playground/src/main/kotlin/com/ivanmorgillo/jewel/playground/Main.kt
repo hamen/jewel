@@ -3,11 +3,6 @@ package com.ivanmorgillo.jewel.playground
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
@@ -26,9 +21,9 @@ import org.jetbrains.jewel.intui.standalone.theme.default
 import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
 import org.jetbrains.jewel.intui.window.decoratedWindow
 import org.jetbrains.jewel.ui.ComponentStyling
-import org.jetbrains.jewel.ui.component.ContextMenuDivider.onClick
-import org.jetbrains.jewel.ui.component.OutlinedButton
+import org.jetbrains.jewel.ui.component.HorizontalTwoPaneStrategy
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.TwoPane
 import org.jetbrains.jewel.window.DecoratedWindow
 
 fun main() {
@@ -46,20 +41,35 @@ fun main() {
             DecoratedWindow(
                 onCloseRequest = { exitApplication() },
                 title = "Jewel playground",
-                state = rememberWindowState(
-                    size = DpSize(1000.dp, 600.dp),
-                    position = WindowPosition(Alignment.Center),
-                ),
+                state =
+                    rememberWindowState(
+                        size = DpSize(1000.dp, 600.dp),
+                        position = WindowPosition(Alignment.Center),
+                    ),
                 content = {
-                    var counter by remember { mutableStateOf(0) }
-                    Box(
-                        modifier = Modifier.fillMaxSize().padding(8.dp),
-                        contentAlignment = Alignment.TopStart,
-                    ) {
-                        OutlinedButton(onClick = { counter++ }) {
-                            Text("Clicked $counter times")
-                        }
-                    }
+                    TwoPane(
+                        first = {
+                            Box(
+                                modifier = Modifier.fillMaxSize().padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("Left Panel Content")
+                            }
+                        },
+                        second = {
+                            Box(
+                                modifier = Modifier.fillMaxSize().padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("Right Panel Content")
+                            }
+                        },
+                        strategy = HorizontalTwoPaneStrategy(
+                            splitFraction = 0.5f,
+                            gapWidth = 1.dp
+                        ),
+                        modifier = Modifier.fillMaxSize()
+                    )
                 },
             )
         }
