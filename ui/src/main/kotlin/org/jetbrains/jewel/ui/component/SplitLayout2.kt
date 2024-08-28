@@ -35,7 +35,7 @@ import java.awt.Cursor
 import kotlin.math.roundToInt
 
 @Composable
-public fun TwoPane(
+public fun SplitLayout2(
     first: @Composable () -> Unit,
     second: @Composable () -> Unit,
     strategy: TwoPaneStrategy,
@@ -57,10 +57,29 @@ public fun TwoPane(
             Box(Modifier.layoutId("second")) { second() }
 
             val dividerInteractionSource = remember { MutableInteractionSource() }
+            val dividerOrientation = when {
+                strategy.isHorizontal() -> Vertical
+                else -> Horizontal
+            }
+            val fillMaxDirection = when {
+                strategy.isHorizontal() -> Modifier.fillMaxHeight()
+                else -> Modifier.fillMaxWidth()
+            }
+
+            val orientation = when {
+                strategy.isHorizontal() -> Orientation.Horizontal
+                else -> Orientation.Vertical
+            }
+
+            val cursor = when {
+                strategy.isHorizontal() -> Cursor(Cursor.E_RESIZE_CURSOR)
+                else -> Cursor(Cursor.N_RESIZE_CURSOR)
+            }
+
             Divider(
-                orientation = if (strategy.isHorizontal()) Vertical else Horizontal,
+                orientation = dividerOrientation,
                 modifier = Modifier
-                    .let { if (strategy.isHorizontal()) it.fillMaxHeight() else it.fillMaxWidth() }
+                    .then(fillMaxDirection)
                     .layoutId("divider"),
                 color = dividerColor,
                 thickness = dividerThickness,
@@ -68,15 +87,19 @@ public fun TwoPane(
 
             Box(
                 Modifier
-                    .let { if (strategy.isHorizontal()) it.fillMaxHeight().width(draggableWidth) else it.fillMaxWidth().height(draggableWidth) }
+                    .let { modifier ->
+                        if (strategy.isHorizontal()) {
+                            modifier.fillMaxHeight().width(draggableWidth)
+                        } else {
+                            modifier.fillMaxWidth().height(draggableWidth)
+                        }
+                    }
                     .draggable(
-                        orientation = if (strategy.isHorizontal()) androidx.compose.foundation.gestures.Orientation.Horizontal else androidx.compose.foundation.gestures.Orientation.Vertical,
-                        state = rememberDraggableState { delta ->
-                            dividerPosition += delta
-                        },
+                        orientation = orientation,
+                        state = rememberDraggableState { delta -> dividerPosition += delta },
                         interactionSource = dividerInteractionSource,
                     )
-                    .pointerHoverIcon(PointerIcon(if (strategy.isHorizontal()) Cursor(Cursor.E_RESIZE_CURSOR) else Cursor(Cursor.N_RESIZE_CURSOR)))
+                    .pointerHoverIcon(PointerIcon(cursor))
                     .layoutId("divider-handle")
             )
         }
@@ -186,7 +209,7 @@ public interface TwoPaneStrategy {
         density: Density,
         layoutDirection: LayoutDirection,
         layoutCoordinates: LayoutCoordinates,
-        dividerPosition: Float
+        dividerPosition: Float,
     ): SplitResult
 
     public fun isHorizontal(): Boolean
@@ -200,7 +223,7 @@ public fun HorizontalTwoPaneStrategy(
         density: Density,
         layoutDirection: LayoutDirection,
         layoutCoordinates: LayoutCoordinates,
-        dividerPosition: Float
+        dividerPosition: Float,
     ): SplitResult {
         val availableWidth = layoutCoordinates.size.width
         val splitWidthPixel = with(density) { gapWidth.toPx() }
@@ -229,7 +252,7 @@ public fun VerticalTwoPaneStrategy(
         density: Density,
         layoutDirection: LayoutDirection,
         layoutCoordinates: LayoutCoordinates,
-        dividerPosition: Float
+        dividerPosition: Float,
     ): SplitResult {
         val availableHeight = layoutCoordinates.size.height
         val splitHeightPixel = with(density) { gapHeight.toPx() }

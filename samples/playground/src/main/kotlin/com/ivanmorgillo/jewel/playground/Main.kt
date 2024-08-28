@@ -22,8 +22,8 @@ import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
 import org.jetbrains.jewel.intui.window.decoratedWindow
 import org.jetbrains.jewel.ui.ComponentStyling
 import org.jetbrains.jewel.ui.component.HorizontalTwoPaneStrategy
+import org.jetbrains.jewel.ui.component.SplitLayout2
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.TwoPane
 import org.jetbrains.jewel.window.DecoratedWindow
 
 fun main() {
@@ -47,7 +47,7 @@ fun main() {
                         position = WindowPosition(Alignment.Center),
                     ),
                 content = {
-                    TwoPane(
+                    SplitLayout2(
                         first = {
                             Box(
                                 modifier = Modifier.fillMaxSize().padding(16.dp),
