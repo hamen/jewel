@@ -23,7 +23,7 @@ import org.jetbrains.jewel.intui.window.decoratedWindow
 import org.jetbrains.jewel.ui.ComponentStyling
 import org.jetbrains.jewel.ui.component.SplitLayout2
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.horizontalTwoPaneStrategy
+import org.jetbrains.jewel.ui.component.splitlayout.horizontalTwoPaneStrategy
 import org.jetbrains.jewel.window.DecoratedWindow
 
 fun main() {

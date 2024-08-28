@@ -15,7 +15,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -24,13 +23,12 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.Orientation.Horizontal
 import org.jetbrains.jewel.ui.Orientation.Vertical
+import org.jetbrains.jewel.ui.component.splitlayout.SplitLayoutStrategy
 import java.awt.Cursor
 import kotlin.math.roundToInt
 
@@ -38,7 +36,7 @@ import kotlin.math.roundToInt
 public fun SplitLayout2(
     first: @Composable () -> Unit,
     second: @Composable () -> Unit,
-    strategy: TwoPaneStrategy,
+    strategy: SplitLayoutStrategy,
     modifier: Modifier = Modifier,
     dividerColor: Color = JewelTheme.globalColors.borders.normal,
     dividerThickness: Dp = 1.dp,
@@ -217,76 +215,3 @@ public fun SplitLayout2(
     }
 }
 
-public class SplitResult(
-    public val gapOrientation: Orientation,
-    public val gapBounds: Rect,
-)
-
-public interface TwoPaneStrategy {
-    public fun calculateSplitResult(
-        density: Density,
-        layoutDirection: LayoutDirection,
-        layoutCoordinates: LayoutCoordinates,
-        dividerPosition: Float,
-    ): SplitResult
-
-    public fun isHorizontal(): Boolean
-}
-
-public fun horizontalTwoPaneStrategy(
-    initialSplitFraction: Float = 0.5f,
-    gapWidth: Dp = 0.dp,
-): TwoPaneStrategy = object : TwoPaneStrategy {
-    override fun calculateSplitResult(
-        density: Density,
-        layoutDirection: LayoutDirection,
-        layoutCoordinates: LayoutCoordinates,
-        dividerPosition: Float,
-    ): SplitResult {
-        val availableWidth = layoutCoordinates.size.width
-        val splitWidthPixel = with(density) { gapWidth.toPx() }
-        val initialSplitX = availableWidth * initialSplitFraction
-        val splitX = (initialSplitX + dividerPosition).coerceIn(0f, availableWidth.toFloat())
-
-        return SplitResult(
-            gapOrientation = Orientation.Vertical,
-            gapBounds = Rect(
-                left = splitX - splitWidthPixel / 2f,
-                top = 0f,
-                right = (splitX + splitWidthPixel / 2f).coerceAtMost(availableWidth.toFloat()),
-                bottom = layoutCoordinates.size.height.toFloat(),
-            )
-        )
-    }
-
-    override fun isHorizontal(): Boolean = true
-}
-
-public fun verticalTwoPaneStrategy(
-    initialSplitFraction: Float = 0.5f,
-    gapHeight: Dp = 0.dp,
-): TwoPaneStrategy = object : TwoPaneStrategy {
-    override fun calculateSplitResult(
-        density: Density,
-        layoutDirection: LayoutDirection,
-        layoutCoordinates: LayoutCoordinates,
-        dividerPosition: Float,
-    ): SplitResult {
-        val availableHeight = layoutCoordinates.size.height
-        val splitHeightPixel = with(density) { gapHeight.toPx() }
-        val initialSplitY = availableHeight * initialSplitFraction
-        val splitY = (initialSplitY + dividerPosition).coerceIn(0f, availableHeight.toFloat())
-
-        return SplitResult(
-            gapOrientation = Orientation.Horizontal,
-            gapBounds = Rect(
-                left = 0f,
-                top = splitY - splitHeightPixel / 2f,
-                right = layoutCoordinates.size.width.toFloat(),
-                bottom = (splitY + splitHeightPixel / 2f).coerceAtMost(availableHeight.toFloat()),
-            )
-        )
-    }
-
-    override fun isHorizontal(): Boolean = false
-}
