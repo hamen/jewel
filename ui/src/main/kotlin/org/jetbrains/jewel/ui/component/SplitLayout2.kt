@@ -43,6 +43,8 @@ public fun SplitLayout2(
     dividerColor: Color = JewelTheme.globalColors.borders.normal,
     dividerThickness: Dp = 1.dp,
     draggableWidth: Dp = 8.dp,
+    minFirstPaneSize: Dp = 100.dp,
+    minSecondPaneSize: Dp = 100.dp,
 ) {
     val density = LocalDensity.current
     var dividerPosition by remember { mutableStateOf(0f) }
@@ -122,40 +124,48 @@ public fun SplitLayout2(
 
             val dividerWidth = with(density) { dividerThickness.roundToPx() }
             val handleWidth = with(density) { draggableWidth.roundToPx() }
+            val minFirstPaneSizePx = with(density) { minFirstPaneSize.roundToPx() }
+            val minSecondPaneSizePx = with(density) { minSecondPaneSize.roundToPx() }
 
             val dividerPlaceable = dividerMeasurable.measure(
-                if (gapOrientation == Orientation.Vertical) {
-                    constraints.copy(
-                        minWidth = dividerWidth,
-                        maxWidth = dividerWidth,
-                        minHeight = constraints.minHeight,
-                        maxHeight = constraints.maxHeight
-                    )
-                } else {
-                    constraints.copy(
-                        minWidth = constraints.minWidth,
-                        maxWidth = constraints.maxWidth,
-                        minHeight = dividerWidth,
-                        maxHeight = dividerWidth
-                    )
+                when (gapOrientation) {
+                    Orientation.Vertical -> {
+                        constraints.copy(
+                            minWidth = dividerWidth,
+                            maxWidth = dividerWidth,
+                            minHeight = constraints.minHeight,
+                            maxHeight = constraints.maxHeight
+                        )
+                    }
+                    Orientation.Horizontal -> {
+                        constraints.copy(
+                            minWidth = constraints.minWidth,
+                            maxWidth = constraints.maxWidth,
+                            minHeight = dividerWidth,
+                            maxHeight = dividerWidth
+                        )
+                    }
                 }
             )
 
             val dividerHandlePlaceable = dividerHandleMeasurable.measure(
-                if (gapOrientation == Orientation.Vertical) {
-                    constraints.copy(
-                        minWidth = handleWidth,
-                        maxWidth = handleWidth,
-                        minHeight = constraints.minHeight,
-                        maxHeight = constraints.maxHeight
-                    )
-                } else {
-                    constraints.copy(
-                        minWidth = constraints.minWidth,
-                        maxWidth = constraints.maxWidth,
-                        minHeight = handleWidth,
-                        maxHeight = handleWidth
-                    )
+                when (gapOrientation) {
+                    Orientation.Vertical -> {
+                        constraints.copy(
+                            minWidth = handleWidth,
+                            maxWidth = handleWidth,
+                            minHeight = constraints.minHeight,
+                            maxHeight = constraints.maxHeight
+                        )
+                    }
+                    Orientation.Horizontal -> {
+                        constraints.copy(
+                            minWidth = constraints.minWidth,
+                            maxWidth = constraints.maxWidth,
+                            minHeight = handleWidth,
+                            maxHeight = handleWidth
+                        )
+                    }
                 }
             )
 
@@ -165,19 +175,24 @@ public fun SplitLayout2(
                 constraints.maxHeight - dividerWidth
             }
 
-            val firstSize = (if (gapOrientation == Orientation.Vertical) gapBounds.left else gapBounds.top).roundToInt()
+            val firstGap = when (gapOrientation) {
+                Orientation.Vertical -> gapBounds.left
+                Orientation.Horizontal -> gapBounds.top
+            }
+            val firstSize: Int = firstGap
+                .roundToInt()
+                .coerceIn(minFirstPaneSizePx, availableSpace - minSecondPaneSizePx)
+
             val secondSize = availableSpace - firstSize
 
-            val firstConstraints = if (gapOrientation == Orientation.Vertical) {
-                constraints.copy(minWidth = 0, maxWidth = firstSize.coerceAtLeast(0))
-            } else {
-                constraints.copy(minHeight = 0, maxHeight = firstSize.coerceAtLeast(0))
+            val firstConstraints = when (gapOrientation) {
+                Orientation.Vertical -> constraints.copy(minWidth = minFirstPaneSizePx, maxWidth = firstSize)
+                Orientation.Horizontal -> constraints.copy(minHeight = minFirstPaneSizePx, maxHeight = firstSize)
             }
 
-            val secondConstraints = if (gapOrientation == Orientation.Vertical) {
-                constraints.copy(minWidth = 0, maxWidth = secondSize.coerceAtLeast(0))
-            } else {
-                constraints.copy(minHeight = 0, maxHeight = secondSize.coerceAtLeast(0))
+            val secondConstraints = when (gapOrientation) {
+                Orientation.Vertical -> constraints.copy(minWidth = minSecondPaneSizePx, maxWidth = secondSize)
+                Orientation.Horizontal -> constraints.copy(minHeight = minSecondPaneSizePx, maxHeight = secondSize)
             }
 
             val firstPlaceable = firstMeasurable.measure(firstConstraints)
@@ -185,14 +200,17 @@ public fun SplitLayout2(
 
             layout(constraints.maxWidth, constraints.maxHeight) {
                 firstPlaceable.placeRelative(0, 0)
-                if (gapOrientation == Orientation.Vertical) {
-                    dividerPlaceable.placeRelative(firstSize, 0)
-                    dividerHandlePlaceable.placeRelative(firstSize - handleWidth / 2, 0)
-                    secondPlaceable.placeRelative(firstSize + dividerWidth, 0)
-                } else {
-                    dividerPlaceable.placeRelative(0, firstSize)
-                    dividerHandlePlaceable.placeRelative(0, firstSize - handleWidth / 2)
-                    secondPlaceable.placeRelative(0, firstSize + dividerWidth)
+                when (gapOrientation) {
+                    Orientation.Vertical -> {
+                        dividerPlaceable.placeRelative(firstSize, 0)
+                        dividerHandlePlaceable.placeRelative(firstSize - handleWidth / 2, 0)
+                        secondPlaceable.placeRelative(firstSize + dividerWidth, 0)
+                    }
+                    Orientation.Horizontal -> {
+                        dividerPlaceable.placeRelative(0, firstSize)
+                        dividerHandlePlaceable.placeRelative(0, firstSize - handleWidth / 2)
+                        secondPlaceable.placeRelative(0, firstSize + dividerWidth)
+                    }
                 }
             }
         } ?: layout(constraints.minWidth, constraints.minHeight) {}
@@ -215,7 +233,7 @@ public interface TwoPaneStrategy {
     public fun isHorizontal(): Boolean
 }
 
-public fun HorizontalTwoPaneStrategy(
+public fun horizontalTwoPaneStrategy(
     initialSplitFraction: Float = 0.5f,
     gapWidth: Dp = 0.dp,
 ): TwoPaneStrategy = object : TwoPaneStrategy {
@@ -244,7 +262,7 @@ public fun HorizontalTwoPaneStrategy(
     override fun isHorizontal(): Boolean = true
 }
 
-public fun VerticalTwoPaneStrategy(
+public fun verticalTwoPaneStrategy(
     initialSplitFraction: Float = 0.5f,
     gapHeight: Dp = 0.dp,
 ): TwoPaneStrategy = object : TwoPaneStrategy {

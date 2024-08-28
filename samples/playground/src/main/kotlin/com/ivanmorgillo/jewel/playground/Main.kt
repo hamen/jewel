@@ -21,9 +21,9 @@ import org.jetbrains.jewel.intui.standalone.theme.default
 import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
 import org.jetbrains.jewel.intui.window.decoratedWindow
 import org.jetbrains.jewel.ui.ComponentStyling
-import org.jetbrains.jewel.ui.component.HorizontalTwoPaneStrategy
 import org.jetbrains.jewel.ui.component.SplitLayout2
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.horizontalTwoPaneStrategy
 import org.jetbrains.jewel.window.DecoratedWindow
 
 fun main() {
@@ -65,11 +65,13 @@ fun main() {
                             }
                         },
                         strategy =
-                            HorizontalTwoPaneStrategy(
+                            horizontalTwoPaneStrategy(
                                 initialSplitFraction = 0.5f,
                                 gapWidth = 1.dp,
                             ),
                         modifier = Modifier.fillMaxSize(),
+                        minFirstPaneSize = 300.dp,
+                        minSecondPaneSize = 100.dp,
                     )
                 },
             )
