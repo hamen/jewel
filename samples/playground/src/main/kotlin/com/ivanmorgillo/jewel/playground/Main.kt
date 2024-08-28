@@ -51,7 +51,7 @@ fun main() {
                         first = {
                             Box(
                                 modifier = Modifier.fillMaxSize().padding(16.dp),
-                                contentAlignment = Alignment.Center
+                                contentAlignment = Alignment.Center,
                             ) {
                                 Text("Left Panel Content")
                             }
@@ -59,16 +59,17 @@ fun main() {
                         second = {
                             Box(
                                 modifier = Modifier.fillMaxSize().padding(16.dp),
-                                contentAlignment = Alignment.Center
+                                contentAlignment = Alignment.Center,
                             ) {
                                 Text("Right Panel Content")
                             }
                         },
-                        strategy = HorizontalTwoPaneStrategy(
-                            splitFraction = 0.5f,
-                            gapWidth = 1.dp
-                        ),
-                        modifier = Modifier.fillMaxSize()
+                        strategy =
+                            HorizontalTwoPaneStrategy(
+                                initialSplitFraction = 0.5f,
+                                gapWidth = 1.dp,
+                            ),
+                        modifier = Modifier.fillMaxSize(),
                     )
                 },
             )

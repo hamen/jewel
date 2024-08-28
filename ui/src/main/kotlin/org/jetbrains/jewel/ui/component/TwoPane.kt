@@ -1,395 +1,251 @@
 package org.jetbrains.jewel.ui.component
 
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.constrain
-import androidx.compose.ui.unit.constrainHeight
-import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.Orientation.Horizontal
+import org.jetbrains.jewel.ui.Orientation.Vertical
+import java.awt.Cursor
 import kotlin.math.roundToInt
 
-@Composable public fun TwoPane(
+@Composable
+public fun TwoPane(
     first: @Composable () -> Unit,
     second: @Composable () -> Unit,
     strategy: TwoPaneStrategy,
     modifier: Modifier = Modifier,
+    dividerColor: Color = JewelTheme.globalColors.borders.normal,
+    dividerThickness: Dp = 1.dp,
+    draggableWidth: Dp = 8.dp,
 ) {
     val density = LocalDensity.current
-    Layout(
-        modifier = modifier.wrapContentSize(),
-        content = {
-            Box(Modifier.layoutId("first")) {
-                first()
-            }
-            Box(Modifier.layoutId("second")) {
-                second()
-            }
-        }
-    ) { measurable, constraints ->
-        val firstMeasurable = measurable.find { it.layoutId == "first" }!!
-        val secondMeasurable = measurable.find { it.layoutId == "second" }!!
+    var dividerPosition by remember { mutableStateOf(0f) }
+    var layoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
-        layout(constraints.maxWidth, constraints.maxHeight) {
+    Layout(
+        modifier = modifier.onGloballyPositioned { coordinates ->
+            layoutCoordinates = coordinates
+        },
+        content = {
+            Box(Modifier.layoutId("first")) { first() }
+            Box(Modifier.layoutId("second")) { second() }
+
+            val dividerInteractionSource = remember { MutableInteractionSource() }
+            Divider(
+                orientation = if (strategy.isHorizontal()) Vertical else Horizontal,
+                modifier = Modifier
+                    .let { if (strategy.isHorizontal()) it.fillMaxHeight() else it.fillMaxWidth() }
+                    .layoutId("divider"),
+                color = dividerColor,
+                thickness = dividerThickness,
+            )
+
+            Box(
+                Modifier
+                    .let { if (strategy.isHorizontal()) it.fillMaxHeight().width(draggableWidth) else it.fillMaxWidth().height(draggableWidth) }
+                    .draggable(
+                        orientation = if (strategy.isHorizontal()) androidx.compose.foundation.gestures.Orientation.Horizontal else androidx.compose.foundation.gestures.Orientation.Vertical,
+                        state = rememberDraggableState { delta ->
+                            dividerPosition += delta
+                        },
+                        interactionSource = dividerInteractionSource,
+                    )
+                    .pointerHoverIcon(PointerIcon(if (strategy.isHorizontal()) Cursor(Cursor.E_RESIZE_CURSOR) else Cursor(Cursor.N_RESIZE_CURSOR)))
+                    .layoutId("divider-handle")
+            )
+        }
+    ) { measurables, constraints ->
+        val firstMeasurable = measurables.find { it.layoutId == "first" }!!
+        val secondMeasurable = measurables.find { it.layoutId == "second" }!!
+        val dividerMeasurable = measurables.find { it.layoutId == "divider" }!!
+        val dividerHandleMeasurable = measurables.find { it.layoutId == "divider-handle" }!!
+
+        layoutCoordinates?.let { coordinates ->
             val splitResult = strategy.calculateSplitResult(
                 density = density,
                 layoutDirection = layoutDirection,
-                layoutCoordinates = coordinates ?: return@layout
+                layoutCoordinates = coordinates,
+                dividerPosition = dividerPosition
             )
 
             val gapOrientation = splitResult.gapOrientation
             val gapBounds = splitResult.gapBounds
 
-            val gapLeft = constraints.constrainWidth(gapBounds.left.roundToInt())
-            val gapRight = constraints.constrainWidth(gapBounds.right.roundToInt())
-            val gapTop = constraints.constrainHeight(gapBounds.top.roundToInt())
-            val gapBottom = constraints.constrainHeight(gapBounds.bottom.roundToInt())
-            val firstConstraints =
-                if (gapOrientation == Orientation.Vertical) {
-                    val width = when (layoutDirection) {
-                        LayoutDirection.Ltr -> gapLeft
-                        LayoutDirection.Rtl -> constraints.maxWidth - gapRight
-                    }
+            val dividerWidth = with(density) { dividerThickness.roundToPx() }
+            val handleWidth = with(density) { draggableWidth.roundToPx() }
 
-                    constraints.copy(minWidth = width, maxWidth = width)
-                } else {
-                    constraints.copy(minHeight = gapTop, maxHeight = gapTop)
-                }
-            val secondConstraints =
+            val dividerPlaceable = dividerMeasurable.measure(
                 if (gapOrientation == Orientation.Vertical) {
-                    val width = when (layoutDirection) {
-                        LayoutDirection.Ltr -> constraints.maxWidth - gapRight
-                        LayoutDirection.Rtl -> gapLeft
-                    }
-                    constraints.copy(minWidth = width, maxWidth = width)
+                    constraints.copy(
+                        minWidth = dividerWidth,
+                        maxWidth = dividerWidth,
+                        minHeight = constraints.minHeight,
+                        maxHeight = constraints.maxHeight
+                    )
                 } else {
-                    val height = constraints.maxHeight - gapBottom
-                    constraints.copy(minHeight = height, maxHeight = height)
+                    constraints.copy(
+                        minWidth = constraints.minWidth,
+                        maxWidth = constraints.maxWidth,
+                        minHeight = dividerWidth,
+                        maxHeight = dividerWidth
+                    )
                 }
-            val firstPlaceable = firstMeasurable.measure(constraints.constrain(firstConstraints))
-            val secondPlaceable = secondMeasurable.measure(constraints.constrain(secondConstraints))
+            )
 
-            firstPlaceable.placeRelative(0, 0)
-            val detailOffsetX =
+            val dividerHandlePlaceable = dividerHandleMeasurable.measure(
                 if (gapOrientation == Orientation.Vertical) {
-                    constraints.maxWidth - secondPlaceable.width
+                    constraints.copy(
+                        minWidth = handleWidth,
+                        maxWidth = handleWidth,
+                        minHeight = constraints.minHeight,
+                        maxHeight = constraints.maxHeight
+                    )
                 } else {
-                    0
+                    constraints.copy(
+                        minWidth = constraints.minWidth,
+                        maxWidth = constraints.maxWidth,
+                        minHeight = handleWidth,
+                        maxHeight = handleWidth
+                    )
                 }
-            val detailOffsetY =
+            )
+
+            val availableSpace = if (gapOrientation == Orientation.Vertical) {
+                constraints.maxWidth - dividerWidth
+            } else {
+                constraints.maxHeight - dividerWidth
+            }
+
+            val firstSize = (if (gapOrientation == Orientation.Vertical) gapBounds.left else gapBounds.top).roundToInt()
+            val secondSize = availableSpace - firstSize
+
+            val firstConstraints = if (gapOrientation == Orientation.Vertical) {
+                constraints.copy(minWidth = 0, maxWidth = firstSize.coerceAtLeast(0))
+            } else {
+                constraints.copy(minHeight = 0, maxHeight = firstSize.coerceAtLeast(0))
+            }
+
+            val secondConstraints = if (gapOrientation == Orientation.Vertical) {
+                constraints.copy(minWidth = 0, maxWidth = secondSize.coerceAtLeast(0))
+            } else {
+                constraints.copy(minHeight = 0, maxHeight = secondSize.coerceAtLeast(0))
+            }
+
+            val firstPlaceable = firstMeasurable.measure(firstConstraints)
+            val secondPlaceable = secondMeasurable.measure(secondConstraints)
+
+            layout(constraints.maxWidth, constraints.maxHeight) {
+                firstPlaceable.placeRelative(0, 0)
                 if (gapOrientation == Orientation.Vertical) {
-                    0
+                    dividerPlaceable.placeRelative(firstSize, 0)
+                    dividerHandlePlaceable.placeRelative(firstSize - handleWidth / 2, 0)
+                    secondPlaceable.placeRelative(firstSize + dividerWidth, 0)
                 } else {
-                    constraints.maxHeight - secondPlaceable.height
+                    dividerPlaceable.placeRelative(0, firstSize)
+                    dividerHandlePlaceable.placeRelative(0, firstSize - handleWidth / 2)
+                    secondPlaceable.placeRelative(0, firstSize + dividerWidth)
                 }
-            secondPlaceable.placeRelative(detailOffsetX, detailOffsetY)
-        }
+            }
+        } ?: layout(constraints.minWidth, constraints.minHeight) {}
     }
 }
 
-/**
- * Returns the specification for where to place a split in [TwoPane] as a result of
- * [TwoPaneStrategy.calculateSplitResult]
- */
 public class SplitResult(
-
-    /**
-     * Whether the gap is vertical or horizontal
-     */
     public val gapOrientation: Orientation,
-
-    /**
-     * The bounds that are nether a `start` pane or an `end` pane, but a separation between those
-     * two. In case width or height is 0 - it means that the gap itself is a 0 width/height, but the
-     * place within the layout is still defined.
-     *
-     * The [gapBounds] should be defined in local bounds to the [TwoPane].
-     */
     public val gapBounds: Rect,
 )
 
-/**
- * A strategy for configuring the [TwoPane] component, that is responsible for the meta-data
- * corresponding to the arrangement of the two panes of the layout.
- */
-public fun interface TwoPaneStrategy {
-    /**
-     * Calculates the split result in local bounds of the [TwoPane].
-     *
-     * @param density the [Density] for measuring and laying out
-     * @param layoutDirection the [LayoutDirection] for measuring and laying out
-     * @param layoutCoordinates the [LayoutCoordinates] of the [TwoPane]
-     */
+public interface TwoPaneStrategy {
     public fun calculateSplitResult(
         density: Density,
         layoutDirection: LayoutDirection,
         layoutCoordinates: LayoutCoordinates,
+        dividerPosition: Float
     ): SplitResult
+
+    public fun isHorizontal(): Boolean
 }
 
-/**
- * A strategy for configuring the [TwoPane] component, that is responsible for the meta-data
- * corresponding to the arrangement of the two panes of the layout.
- *
- * This strategy can be conditional: If `null` is returned from [calculateSplitResult], then this
- * strategy did not produce a split result to use, and a different strategy should be used.
- */
-private fun interface ConditionalTwoPaneStrategy {
-    /**
-     * Calculates the split result in local bounds of the [TwoPane], or `null` if this strategy
-     * does not apply.
-     *
-     * @param density the [Density] for measuring and laying out
-     * @param layoutDirection the [LayoutDirection] for measuring and laying out
-     * @param layoutCoordinates the [LayoutCoordinates] of the [TwoPane]
-     */
-    fun calculateSplitResult(
+public fun HorizontalTwoPaneStrategy(
+    initialSplitFraction: Float = 0.5f,
+    gapWidth: Dp = 0.dp,
+): TwoPaneStrategy = object : TwoPaneStrategy {
+    override fun calculateSplitResult(
         density: Density,
         layoutDirection: LayoutDirection,
         layoutCoordinates: LayoutCoordinates,
-    ): SplitResult?
-}
+        dividerPosition: Float
+    ): SplitResult {
+        val availableWidth = layoutCoordinates.size.width
+        val splitWidthPixel = with(density) { gapWidth.toPx() }
+        val initialSplitX = availableWidth * initialSplitFraction
+        val splitX = (initialSplitX + dividerPosition).coerceIn(0f, availableWidth.toFloat())
 
-/**
- * Returns a [TwoPaneStrategy] that will place the slots horizontally.
- *
- * The gap will be placed at the given [splitFraction] from start, with the given
- * [gapWidth].
- */
-public fun HorizontalTwoPaneStrategy(
-    splitFraction: Float,
-    gapWidth: Dp = 0.dp,
-): TwoPaneStrategy = FractionHorizontalTwoPaneStrategy(
-    splitFraction = splitFraction,
-    gapWidth = gapWidth
-)
-
-/**
- * Returns a [TwoPaneStrategy] that will place the slots horizontally.
- *
- * The gap will be placed at [splitOffset] either from the start or end based on
- * [offsetFromStart], with the given [gapWidth].
- */
-public fun HorizontalTwoPaneStrategy(
-    splitOffset: Dp,
-    offsetFromStart: Boolean = true,
-    gapWidth: Dp = 0.dp,
-): TwoPaneStrategy = FixedOffsetHorizontalTwoPaneStrategy(
-    splitOffset = splitOffset,
-    offsetFromStart = offsetFromStart,
-    gapWidth = gapWidth
-)
-
-/**
- * Returns a [TwoPaneStrategy] that will place the slots horizontally.
- *
- * The gap will be placed at the given [splitFraction] from top, with the given
- * [gapHeight].
- */
-public fun VerticalTwoPaneStrategy(
-    splitFraction: Float,
-    gapHeight: Dp = 0.dp,
-): TwoPaneStrategy = FractionVerticalTwoPaneStrategy(
-    splitFraction = splitFraction,
-    gapHeight = gapHeight
-)
-
-/**
- * Returns a [TwoPaneStrategy] that will place the slots horizontally.
- *
- * The gap will be placed at [splitOffset] either from the top or bottom based on
- * [offsetFromTop], with the given [gapHeight].
- */
-public fun VerticalTwoPaneStrategy(
-    splitOffset: Dp,
-    offsetFromTop: Boolean = true,
-    gapHeight: Dp = 0.dp,
-): TwoPaneStrategy = FixedOffsetVerticalTwoPaneStrategy(
-    splitOffset = splitOffset,
-    offsetFromTop = offsetFromTop,
-    gapHeight = gapHeight
-)
-
-/**
- * Returns a [TwoPaneStrategy] that will place the slots horizontally if there is a vertical fold.
- *
- * If there is no fold, then the [defaultStrategy] will be used instead.
- */
-private fun HorizontalTwoPaneStrategy(
-    defaultStrategy: TwoPaneStrategy,
-): TwoPaneStrategy = TwoPaneStrategy(
-    defaultStrategy = defaultStrategy
-)
-
-/**
- * Returns a [TwoPaneStrategy] that will place the slots vertically if there is a horizontal fold.
- *
- * If there is no fold, then the [defaultStrategy] will be used instead.
- */
-private fun VerticalTwoPaneStrategy(
-    defaultStrategy: TwoPaneStrategy,
-): TwoPaneStrategy = TwoPaneStrategy(
-    defaultStrategy = defaultStrategy
-)
-
-/**
- * Returns a composite [TwoPaneStrategy].
- *
- * The conditional strategies (if any) will be attempted in order, and their split result used
- * if they return one. If none return a split result, then the [defaultStrategy] will be used,
- * which guarantees returning a [SplitResult].
- */
-private fun TwoPaneStrategy(
-    vararg conditionalStrategies: ConditionalTwoPaneStrategy,
-    defaultStrategy: TwoPaneStrategy,
-): TwoPaneStrategy = TwoPaneStrategy { density, layoutDirection, layoutCoordinates ->
-    conditionalStrategies.firstNotNullOfOrNull { conditionalTwoPaneStrategy ->
-        conditionalTwoPaneStrategy.calculateSplitResult(
-            density = density,
-            layoutDirection = layoutDirection,
-            layoutCoordinates = layoutCoordinates
+        return SplitResult(
+            gapOrientation = Orientation.Vertical,
+            gapBounds = Rect(
+                left = splitX - splitWidthPixel / 2f,
+                top = 0f,
+                right = (splitX + splitWidthPixel / 2f).coerceAtMost(availableWidth.toFloat()),
+                bottom = layoutCoordinates.size.height.toFloat(),
+            )
         )
-    } ?: defaultStrategy.calculateSplitResult(
-        density = density,
-        layoutDirection = layoutDirection,
-        layoutCoordinates = layoutCoordinates
-    )
-}
-
-/**
- * Returns a [TwoPaneStrategy] that will place the slots horizontally.
- *
- * The gap will be placed at the given [splitFraction] from start, with the given [gapWidth].
- *
- * This strategy is _not_ fold aware.
- */
-internal fun FractionHorizontalTwoPaneStrategy(
-    splitFraction: Float,
-    gapWidth: Dp = 0.dp,
-): TwoPaneStrategy = TwoPaneStrategy { density, layoutDirection, layoutCoordinates ->
-    val splitX = layoutCoordinates.size.width * when (layoutDirection) {
-        LayoutDirection.Ltr -> splitFraction
-        LayoutDirection.Rtl -> 1 - splitFraction
     }
-    val splitWidthPixel = with(density) { gapWidth.toPx() }
 
-    SplitResult(
-        gapOrientation = Orientation.Vertical,
-        gapBounds = Rect(
-            left = splitX - splitWidthPixel / 2f,
-            top = 0f,
-            right = splitX + splitWidthPixel / 2f,
-            bottom = layoutCoordinates.size.height.toFloat(),
-        )
-    )
+    override fun isHorizontal(): Boolean = true
 }
 
-/**
- * Returns a [TwoPaneStrategy] that will place the slots horizontally.
- *
- * The gap will be placed at [splitOffset] either from the start or end based on
- * [offsetFromStart], with the given [gapWidth].
- *
- * This strategy is _not_ fold aware.
- */
-internal fun FixedOffsetHorizontalTwoPaneStrategy(
-    splitOffset: Dp,
-    offsetFromStart: Boolean,
-    gapWidth: Dp = 0.dp,
-): TwoPaneStrategy = TwoPaneStrategy { density, layoutDirection, layoutCoordinates ->
-    val splitOffsetPixel = with(density) { splitOffset.toPx() }
-    val splitX = when (layoutDirection) {
-        LayoutDirection.Ltr ->
-            if (offsetFromStart) {
-                splitOffsetPixel
-            } else {
-                layoutCoordinates.size.width - splitOffsetPixel
-            }
+public fun VerticalTwoPaneStrategy(
+    initialSplitFraction: Float = 0.5f,
+    gapHeight: Dp = 0.dp,
+): TwoPaneStrategy = object : TwoPaneStrategy {
+    override fun calculateSplitResult(
+        density: Density,
+        layoutDirection: LayoutDirection,
+        layoutCoordinates: LayoutCoordinates,
+        dividerPosition: Float
+    ): SplitResult {
+        val availableHeight = layoutCoordinates.size.height
+        val splitHeightPixel = with(density) { gapHeight.toPx() }
+        val initialSplitY = availableHeight * initialSplitFraction
+        val splitY = (initialSplitY + dividerPosition).coerceIn(0f, availableHeight.toFloat())
 
-        LayoutDirection.Rtl ->
-            if (offsetFromStart) {
-                layoutCoordinates.size.width - splitOffsetPixel
-            } else {
-                splitOffsetPixel
-            }
+        return SplitResult(
+            gapOrientation = Orientation.Horizontal,
+            gapBounds = Rect(
+                left = 0f,
+                top = splitY - splitHeightPixel / 2f,
+                right = layoutCoordinates.size.width.toFloat(),
+                bottom = (splitY + splitHeightPixel / 2f).coerceAtMost(availableHeight.toFloat()),
+            )
+        )
     }
-    val splitWidthPixel = with(density) { gapWidth.toPx() }
 
-    SplitResult(
-        gapOrientation = Orientation.Vertical,
-        gapBounds = Rect(
-            left = splitX - splitWidthPixel / 2f,
-            top = 0f,
-            right = splitX + splitWidthPixel / 2f,
-            bottom = layoutCoordinates.size.height.toFloat(),
-        )
-    )
-}
-
-/**
- * Returns a [TwoPaneStrategy] that will place the slots horizontally.
- *
- * The split will be placed at the given [splitFraction] from start, with the given [gapHeight].
- *
- * This strategy is _not_ fold aware.
- */
-internal fun FractionVerticalTwoPaneStrategy(
-    splitFraction: Float,
-    gapHeight: Dp = 0.dp,
-): TwoPaneStrategy = TwoPaneStrategy { density, _, layoutCoordinates ->
-    val splitY = layoutCoordinates.size.height * splitFraction
-    val splitHeightPixel = with(density) { gapHeight.toPx() }
-
-    SplitResult(
-        gapOrientation = Orientation.Horizontal,
-        gapBounds = Rect(
-            left = 0f,
-            top = splitY - splitHeightPixel / 2f,
-            right = layoutCoordinates.size.width.toFloat(),
-            bottom = splitY + splitHeightPixel / 2f,
-        )
-    )
-}
-
-/**
- * Returns a [TwoPaneStrategy] that will place the slots horizontally.
- *
- * The split will be placed at [splitOffset] either from the top or bottom based on
- * [offsetFromTop], with the given [gapHeight].
- *
- * This strategy is _not_ fold aware.
- */
-internal fun FixedOffsetVerticalTwoPaneStrategy(
-    splitOffset: Dp,
-    offsetFromTop: Boolean,
-    gapHeight: Dp = 0.dp,
-): TwoPaneStrategy = TwoPaneStrategy { density, _, layoutCoordinates ->
-    val splitOffsetPixel = with(density) { splitOffset.toPx() }
-    val splitY =
-        if (offsetFromTop) {
-            splitOffsetPixel
-        } else {
-            layoutCoordinates.size.height - splitOffsetPixel
-        }
-    val splitHeightPixel = with(density) { gapHeight.toPx() }
-
-    SplitResult(
-        gapOrientation = Orientation.Horizontal,
-        gapBounds = Rect(
-            left = 0f,
-            top = splitY - splitHeightPixel / 2f,
-            right = layoutCoordinates.size.width.toFloat(),
-            bottom = splitY + splitHeightPixel / 2f,
-        )
-    )
+    override fun isHorizontal(): Boolean = false
 }
