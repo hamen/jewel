@@ -32,7 +32,7 @@ import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
 import org.jetbrains.jewel.intui.window.decoratedWindow
 import org.jetbrains.jewel.ui.ComponentStyling
 import org.jetbrains.jewel.ui.component.CheckboxRow
-import org.jetbrains.jewel.ui.component.SplitLayout2
+import org.jetbrains.jewel.ui.component.SplitLayout
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.component.splitlayout.horizontalTwoPaneStrategy
@@ -81,7 +81,7 @@ fun main() {
                         Box(
                             Modifier.fillMaxSize().border(1.dp, Color.Red),
                         ) {
-                            SplitLayout2(
+                            SplitLayout(
                                 first = {
                                     Box(
                                         modifier =
@@ -96,7 +96,7 @@ fun main() {
                                     }
                                 },
                                 second = {
-                                    SplitLayout2(
+                                    SplitLayout(
                                         first = {
                                             Box(
                                                 modifier =
