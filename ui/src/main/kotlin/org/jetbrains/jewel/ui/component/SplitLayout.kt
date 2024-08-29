@@ -37,6 +37,22 @@ import org.jetbrains.jewel.ui.theme.dividerStyle
 import java.awt.Cursor
 import kotlin.math.roundToInt
 
+/**
+ * A customizable horizontal split layout Composable function that allows you to divide the available space
+ * between two components using a draggable divider.
+ * The divider can be dragged to resize the panes, but cannot be focused.
+ *
+ * @param first The Composable function representing the first component,
+ * that will be placed on one side of the divider, typically on the left or above.
+ * @param second The Composable function representing the second component,
+ * that will be placed on the other side of the divider, typically on the right or below.
+ * @param modifier The modifier to be applied to the layout.
+ * @param draggableWidth The width of the draggable area around the divider.
+ * This is a invisible, wider area around the divider that can be dragged by the user to resize the panes.
+ * @param firstPaneMinWidth The minimum size of the first component.
+ * @param secondPaneMinWidth The minimum size of the second component.
+ * @param dividerStyle The divider style to be applied to the layout.
+ */
 @Composable
 public fun HorizontalSplitLayout(
     first: @Composable () -> Unit,
@@ -59,6 +75,22 @@ public fun HorizontalSplitLayout(
     )
 }
 
+/**
+ * A customizable vertical split layout Composable function that allows you to divide the available space
+ * between two components using a draggable divider.
+ * The divider can be dragged to resize the panes, but cannot be focused.
+ *
+ * @param first The Composable function representing the first component,
+ * that will be placed on one side of the divider, typically on the left or above.
+ * @param second The Composable function representing the second component,
+ * that will be placed on the other side of the divider, typically on the right or below.
+ * @param modifier The modifier to be applied to the layout.
+ * @param draggableWidth The width of the draggable area around the divider.
+ * This is a invisible, wider area around the divider that can be dragged by the user to resize the panes.
+ * @param firstPaneMinWidth The minimum size of the first component.
+ * @param secondPaneMinWidth The minimum size of the second component.
+ * @param dividerStyle The divider style to be applied to the layout.
+ */
 @Composable
 public fun VerticalSplitLayout(
     first: @Composable () -> Unit,
@@ -81,29 +113,13 @@ public fun VerticalSplitLayout(
     )
 }
 
-/**
- * A customizable split layout Composable function that allows you to divide the available space
- * between two components using a draggable divider.
- * The divider can be dragged to resize the panes, but cannot be focused.
- *
- * @param first The Composable function representing the first component,
- * that will be placed on one side of the divider, typically on the left or above.
- * @param second The Composable function representing the second component,
- * that will be placed on the other side of the divider, typically on the right or below.
- * @param strategy The split layout strategy to be used for calculating the split result and orientation:
- * `horizontalTwoPaneStrategy` or `verticalTwoPaneStrategy`.
- * @param modifier The modifier to be applied to the layout.
- * @param draggableWidth The width of the draggable area around the divider.
- * This is a invisible, wider area around the divider that can be dragged by the user to resize the panes.
- * @param minFirstPaneSize The minimum size of the first component.
- * @param minSecondPaneSize The minimum size of the second component.
- */
-@Composable private fun SplitLayoutImpl(
+@Composable
+private fun SplitLayoutImpl(
     first: @Composable () -> Unit,
     second: @Composable () -> Unit,
     strategy: SplitLayoutStrategy,
-    modifier: Modifier = Modifier,
-    draggableWidth: Dp = 8.dp,
+    modifier: Modifier,
+    draggableWidth: Dp,
     minFirstPaneSize: Dp,
     minSecondPaneSize: Dp,
     dividerStyle: DividerStyle,
