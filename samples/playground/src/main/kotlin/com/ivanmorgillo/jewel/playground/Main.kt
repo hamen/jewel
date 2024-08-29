@@ -59,10 +59,10 @@ fun main() {
                 onCloseRequest = { exitApplication() },
                 title = "Jewel playground",
                 state =
-                rememberWindowState(
-                    size = DpSize(1000.dp, 600.dp),
-                    position = WindowPosition(Alignment.Center),
-                ),
+                    rememberWindowState(
+                        size = DpSize(1000.dp, 600.dp),
+                        position = WindowPosition(Alignment.Center),
+                    ),
                 content = {
                     Column {
                         CheckboxRow(
@@ -85,10 +85,10 @@ fun main() {
                                 first = {
                                     Box(
                                         modifier =
-                                        Modifier
-                                            .fillMaxSize()
-                                            .background(JewelTheme.globalColors.panelBackground)
-                                            .padding(16.dp),
+                                            Modifier
+                                                .fillMaxSize()
+                                                .background(JewelTheme.globalColors.panelBackground)
+                                                .padding(16.dp),
                                         contentAlignment = Alignment.Center,
                                     ) {
                                         val state by remember { mutableStateOf(TextFieldState()) }
@@ -100,10 +100,10 @@ fun main() {
                                         first = {
                                             Box(
                                                 modifier =
-                                                Modifier
-                                                    .fillMaxSize()
-                                                    .background(JewelTheme.globalColors.panelBackground)
-                                                    .padding(16.dp),
+                                                    Modifier
+                                                        .fillMaxSize()
+                                                        .background(JewelTheme.globalColors.panelBackground)
+                                                        .padding(16.dp),
                                                 contentAlignment = Alignment.Center,
                                             ) {
                                                 val state by remember { mutableStateOf(TextFieldState()) }
@@ -113,10 +113,10 @@ fun main() {
                                         second = {
                                             Box(
                                                 modifier =
-                                                Modifier
-                                                    .fillMaxSize()
-                                                    .background(JewelTheme.globalColors.panelBackground)
-                                                    .padding(16.dp),
+                                                    Modifier
+                                                        .fillMaxSize()
+                                                        .background(JewelTheme.globalColors.panelBackground)
+                                                        .padding(16.dp),
                                                 contentAlignment = Alignment.Center,
                                             ) {
                                                 val state by remember { mutableStateOf(TextFieldState()) }
@@ -124,20 +124,20 @@ fun main() {
                                             }
                                         },
                                         strategy =
-                                        horizontalTwoPaneStrategy(
-                                            initialSplitFraction = 0.5f,
-                                            gapWidth = 1.dp,
-                                        ),
+                                            horizontalTwoPaneStrategy(
+                                                initialSplitFraction = 0.5f,
+                                                gapWidth = 1.dp,
+                                            ),
                                         modifier = Modifier.fillMaxSize(),
                                         minFirstPaneSize = 200.dp,
                                         minSecondPaneSize = 100.dp,
                                     )
                                 },
                                 strategy =
-                                horizontalTwoPaneStrategy(
-                                    initialSplitFraction = 0.5f,
-                                    gapWidth = 1.dp,
-                                ),
+                                    horizontalTwoPaneStrategy(
+                                        initialSplitFraction = 0.5f,
+                                        gapWidth = 1.dp,
+                                    ),
                                 modifier = Modifier.fillMaxSize(),
                                 minFirstPaneSize = 100.dp,
                                 minSecondPaneSize = 302.dp,
@@ -152,5 +152,5 @@ fun main() {
 
 enum class UiThemes {
     Light,
-    Dark
+    Dark,
 }

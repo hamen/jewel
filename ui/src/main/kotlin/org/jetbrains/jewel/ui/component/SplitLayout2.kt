@@ -108,10 +108,14 @@ public fun SplitLayout2(
             )
         }
     ) { measurables, constraints ->
-        val firstMeasurable = measurables.find { it.layoutId == "first" }!!
-        val secondMeasurable = measurables.find { it.layoutId == "second" }!!
-        val dividerMeasurable = measurables.find { it.layoutId == "divider" }!!
-        val dividerHandleMeasurable = measurables.find { it.layoutId == "divider-handle" }!!
+        val firstMeasurable = measurables.find { it.layoutId == "first" }
+            ?: error("No first component found.")
+        val secondMeasurable = measurables.find { it.layoutId == "second" }
+            ?: error("No second component found.")
+        val dividerMeasurable = measurables.find { it.layoutId == "divider" }
+            ?: error("No divider component found.")
+        val dividerHandleMeasurable = measurables.find { it.layoutId == "divider-handle" }
+            ?: error("No divider-handle component found.")
 
         layoutCoordinates?.let { coordinates ->
             val splitResult = strategy.calculateSplitResult(
@@ -175,10 +179,9 @@ public fun SplitLayout2(
                 }
             )
 
-            val availableSpace = if (gapOrientation == Orientation.Vertical) {
-                constraints.maxWidth - dividerWidth
-            } else {
-                constraints.maxHeight - dividerWidth
+            val availableSpace = when (gapOrientation) {
+                Orientation.Vertical -> constraints.maxWidth - dividerWidth
+                else -> constraints.maxHeight - dividerWidth
             }
 
             val firstGap = when (gapOrientation) {
