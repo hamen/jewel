@@ -16,7 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.Layout
@@ -24,15 +24,62 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.util.myLogger
 import org.jetbrains.jewel.ui.Orientation.Horizontal
 import org.jetbrains.jewel.ui.Orientation.Vertical
-import org.jetbrains.jewel.ui.component.splitlayout.SplitLayoutStrategy
+import org.jetbrains.jewel.ui.component.styling.DividerStyle
+import org.jetbrains.jewel.ui.theme.dividerStyle
 import java.awt.Cursor
 import kotlin.math.roundToInt
+
+@Composable
+public fun HorizontalSplitLayout(
+    first: @Composable () -> Unit,
+    second: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    dividerStyle: DividerStyle = JewelTheme.dividerStyle,
+    draggableWidth: Dp = 8.dp,
+    firstPaneMinWidth: Dp = Dp.Unspecified,
+    secondPaneMinWidth: Dp = Dp.Unspecified,
+) {
+    SplitLayoutImpl(
+        first = first,
+        second = second,
+        modifier = modifier,
+        dividerStyle = dividerStyle,
+        draggableWidth = draggableWidth,
+        minFirstPaneSize = firstPaneMinWidth,
+        minSecondPaneSize = secondPaneMinWidth,
+        strategy = horizontalTwoPaneStrategy(),
+    )
+}
+
+@Composable
+public fun VerticalSplitLayout(
+    first: @Composable () -> Unit,
+    second: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    dividerStyle: DividerStyle = JewelTheme.dividerStyle,
+    draggableWidth: Dp = 8.dp,
+    firstPaneMinWidth: Dp = Dp.Unspecified,
+    secondPaneMinWidth: Dp = Dp.Unspecified,
+) {
+    SplitLayoutImpl(
+        first = first,
+        second = second,
+        modifier = modifier,
+        dividerStyle = dividerStyle,
+        draggableWidth = draggableWidth,
+        minFirstPaneSize = firstPaneMinWidth,
+        minSecondPaneSize = secondPaneMinWidth,
+        strategy = verticalTwoPaneStrategy(),
+    )
+}
 
 /**
  * A customizable split layout Composable function that allows you to divide the available space
@@ -46,24 +93,20 @@ import kotlin.math.roundToInt
  * @param strategy The split layout strategy to be used for calculating the split result and orientation:
  * `horizontalTwoPaneStrategy` or `verticalTwoPaneStrategy`.
  * @param modifier The modifier to be applied to the layout.
- * @param dividerColor The color of the divider line, by default `JewelTheme.globalColors.borders.normal`.
- * @param dividerThickness The thickness of the divider line.
  * @param draggableWidth The width of the draggable area around the divider.
  * This is a invisible, wider area around the divider that can be dragged by the user to resize the panes.
  * @param minFirstPaneSize The minimum size of the first component.
  * @param minSecondPaneSize The minimum size of the second component.
  */
-@Composable
-public fun SplitLayout(
+@Composable private fun SplitLayoutImpl(
     first: @Composable () -> Unit,
     second: @Composable () -> Unit,
     strategy: SplitLayoutStrategy,
     modifier: Modifier = Modifier,
-    dividerColor: Color = JewelTheme.globalColors.borders.normal,
-    dividerThickness: Dp = 1.dp,
     draggableWidth: Dp = 8.dp,
-    minFirstPaneSize: Dp = 100.dp,
-    minSecondPaneSize: Dp = 100.dp,
+    minFirstPaneSize: Dp,
+    minSecondPaneSize: Dp,
+    dividerStyle: DividerStyle,
 ) {
     val density = LocalDensity.current
     var dividerPosition by remember { mutableStateOf(0f) }
@@ -100,8 +143,8 @@ public fun SplitLayout(
                     .then(fillMaxDirection)
                     .layoutId("divider")
                     .focusable(false),
-                color = dividerColor,
-                thickness = dividerThickness,
+                color = dividerStyle.color,
+                thickness = dividerStyle.metrics.thickness,
             )
 
             Box(
@@ -146,7 +189,7 @@ public fun SplitLayout(
             val gapOrientation = splitResult.gapOrientation
             val gapBounds = splitResult.gapBounds
 
-            val dividerWidth = with(density) { dividerThickness.roundToPx() }
+            val dividerWidth = with(density) { dividerStyle.metrics.thickness.roundToPx() }
             val handleWidth = with(density) { draggableWidth.roundToPx() }
             val minFirstPaneSizePx = with(density) { minFirstPaneSize.roundToPx() }
             val minSecondPaneSizePx = with(density) { minSecondPaneSize.roundToPx() }
@@ -256,3 +299,77 @@ public fun SplitLayout(
     }
 }
 
+
+private interface SplitLayoutStrategy {
+    public fun calculateSplitResult(
+        density: Density,
+        layoutDirection: LayoutDirection,
+        layoutCoordinates: LayoutCoordinates,
+        dividerPosition: Float,
+    ): SplitResult
+
+    public fun isHorizontal(): Boolean
+}
+
+private fun horizontalTwoPaneStrategy(
+    initialSplitFraction: Float = 0.5f,
+    gapWidth: Dp = 0.dp,
+): SplitLayoutStrategy = object : SplitLayoutStrategy {
+    override fun calculateSplitResult(
+        density: Density,
+        layoutDirection: LayoutDirection,
+        layoutCoordinates: LayoutCoordinates,
+        dividerPosition: Float,
+    ): SplitResult {
+        val availableWidth = layoutCoordinates.size.width
+        val splitWidthPixel = with(density) { gapWidth.toPx() }
+        val initialSplitX = availableWidth * initialSplitFraction
+        val splitX = (initialSplitX + dividerPosition).coerceIn(0f, availableWidth.toFloat())
+
+        return SplitResult(
+            gapOrientation = Orientation.Vertical,
+            gapBounds = Rect(
+                left = splitX - splitWidthPixel / 2f,
+                top = 0f,
+                right = (splitX + splitWidthPixel / 2f).coerceAtMost(availableWidth.toFloat()),
+                bottom = layoutCoordinates.size.height.toFloat(),
+            )
+        )
+    }
+
+    override fun isHorizontal(): Boolean = true
+}
+
+private fun verticalTwoPaneStrategy(
+    initialSplitFraction: Float = 0.5f,
+    gapHeight: Dp = 0.dp,
+): SplitLayoutStrategy = object : SplitLayoutStrategy {
+    override fun calculateSplitResult(
+        density: Density,
+        layoutDirection: LayoutDirection,
+        layoutCoordinates: LayoutCoordinates,
+        dividerPosition: Float,
+    ): SplitResult {
+        val availableHeight = layoutCoordinates.size.height
+        val splitHeightPixel = with(density) { gapHeight.toPx() }
+        val initialSplitY = availableHeight * initialSplitFraction
+        val splitY = (initialSplitY + dividerPosition).coerceIn(0f, availableHeight.toFloat())
+
+        return SplitResult(
+            gapOrientation = Orientation.Horizontal,
+            gapBounds = Rect(
+                left = 0f,
+                top = splitY - splitHeightPixel / 2f,
+                right = layoutCoordinates.size.width.toFloat(),
+                bottom = (splitY + splitHeightPixel / 2f).coerceAtMost(availableHeight.toFloat()),
+            )
+        )
+    }
+
+    override fun isHorizontal(): Boolean = false
+}
+
+private class SplitResult(
+    public val gapOrientation: Orientation,
+    public val gapBounds: Rect,
+)

@@ -32,10 +32,9 @@ import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
 import org.jetbrains.jewel.intui.window.decoratedWindow
 import org.jetbrains.jewel.ui.ComponentStyling
 import org.jetbrains.jewel.ui.component.CheckboxRow
-import org.jetbrains.jewel.ui.component.SplitLayout
+import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
-import org.jetbrains.jewel.ui.component.splitlayout.horizontalTwoPaneStrategy
 import org.jetbrains.jewel.window.DecoratedWindow
 
 fun main() {
@@ -81,7 +80,7 @@ fun main() {
                         Box(
                             Modifier.fillMaxSize().border(1.dp, Color.Red),
                         ) {
-                            SplitLayout(
+                            HorizontalSplitLayout(
                                 first = {
                                     Box(
                                         modifier =
@@ -96,7 +95,7 @@ fun main() {
                                     }
                                 },
                                 second = {
-                                    SplitLayout(
+                                    HorizontalSplitLayout(
                                         first = {
                                             Box(
                                                 modifier =
@@ -123,24 +122,14 @@ fun main() {
                                                 TextField(state, placeholder = { Text("Nested - Right Panel Content") })
                                             }
                                         },
-                                        strategy =
-                                            horizontalTwoPaneStrategy(
-                                                initialSplitFraction = 0.5f,
-                                                gapWidth = 1.dp,
-                                            ),
                                         modifier = Modifier.fillMaxSize(),
-                                        minFirstPaneSize = 200.dp,
-                                        minSecondPaneSize = 100.dp,
+                                        firstPaneMinWidth = 200.dp,
+                                        secondPaneMinWidth = 100.dp,
                                     )
                                 },
-                                strategy =
-                                    horizontalTwoPaneStrategy(
-                                        initialSplitFraction = 0.5f,
-                                        gapWidth = 1.dp,
-                                    ),
                                 modifier = Modifier.fillMaxSize(),
-                                minFirstPaneSize = 100.dp,
-                                minSecondPaneSize = 302.dp,
+                                firstPaneMinWidth = 100.dp,
+                                secondPaneMinWidth = 302.dp,
                             )
                         }
                     }
