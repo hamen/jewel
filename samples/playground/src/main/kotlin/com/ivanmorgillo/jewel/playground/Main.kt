@@ -96,16 +96,40 @@ fun main() {
                                     }
                                 },
                                 second = {
-                                    Box(
-                                        modifier =
-                                            Modifier
-                                                .fillMaxSize()
-                                                .background(JewelTheme.globalColors.panelBackground)
-                                                .padding(16.dp),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        Text("Right Panel Content")
-                                    }
+                                    SplitLayout2(
+                                        first = {
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxSize()
+                                                        .background(JewelTheme.globalColors.panelBackground)
+                                                        .padding(16.dp),
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Text("Nested - Left Panel Content")
+                                            }
+                                        },
+                                        second = {
+                                            Box(
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxSize()
+                                                        .background(JewelTheme.globalColors.panelBackground)
+                                                        .padding(16.dp),
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Text("Nested - Right Panel Content")
+                                            }
+                                        },
+                                        strategy =
+                                            horizontalTwoPaneStrategy(
+                                                initialSplitFraction = 0.5f,
+                                                gapWidth = 1.dp,
+                                            ),
+                                        modifier = Modifier.fillMaxSize(),
+                                        minFirstPaneSize = 200.dp,
+                                        minSecondPaneSize = 100.dp,
+                                    )
                                 },
                                 strategy =
                                     horizontalTwoPaneStrategy(
@@ -113,8 +137,8 @@ fun main() {
                                         gapWidth = 1.dp,
                                     ),
                                 modifier = Modifier.fillMaxSize(),
-                                minFirstPaneSize = 300.dp,
-                                minSecondPaneSize = 100.dp,
+                                minFirstPaneSize = 100.dp,
+                                minSecondPaneSize = 302.dp,
                             )
                         }
                     }

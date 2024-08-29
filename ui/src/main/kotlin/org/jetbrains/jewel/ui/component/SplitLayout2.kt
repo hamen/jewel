@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.foundation.util.myLogger
 import org.jetbrains.jewel.ui.Orientation.Horizontal
 import org.jetbrains.jewel.ui.Orientation.Vertical
 import org.jetbrains.jewel.ui.component.splitlayout.SplitLayoutStrategy
@@ -78,9 +79,7 @@ public fun SplitLayout2(
 
             Divider(
                 orientation = dividerOrientation,
-                modifier = Modifier
-                    .then(fillMaxDirection)
-                    .layoutId("divider"),
+                modifier = Modifier.then(fillMaxDirection).layoutId("divider"),
                 color = dividerColor,
                 thickness = dividerThickness,
             )
@@ -125,6 +124,7 @@ public fun SplitLayout2(
             val minFirstPaneSizePx = with(density) { minFirstPaneSize.roundToPx() }
             val minSecondPaneSizePx = with(density) { minSecondPaneSize.roundToPx() }
 
+            // The visual divider itself. It's a thin line that separates the two panes
             val dividerPlaceable = dividerMeasurable.measure(
                 when (gapOrientation) {
                     Orientation.Vertical -> {
@@ -135,6 +135,7 @@ public fun SplitLayout2(
                             maxHeight = constraints.maxHeight
                         )
                     }
+
                     Orientation.Horizontal -> {
                         constraints.copy(
                             minWidth = constraints.minWidth,
@@ -146,6 +147,7 @@ public fun SplitLayout2(
                 }
             )
 
+            // This is a invisible, wider area around the divider that can be dragged by the user to resize the panes
             val dividerHandlePlaceable = dividerHandleMeasurable.measure(
                 when (gapOrientation) {
                     Orientation.Vertical -> {
@@ -156,6 +158,7 @@ public fun SplitLayout2(
                             maxHeight = constraints.maxHeight
                         )
                     }
+
                     Orientation.Horizontal -> {
                         constraints.copy(
                             minWidth = constraints.minWidth,
@@ -176,6 +179,17 @@ public fun SplitLayout2(
             val firstGap = when (gapOrientation) {
                 Orientation.Vertical -> gapBounds.left
                 Orientation.Horizontal -> gapBounds.top
+            }
+
+            require(availableSpace - minSecondPaneSizePx > minFirstPaneSizePx) {
+                myLogger().error(
+                    "Not enough space for first pane:\n" +
+                        "minFirstPaneSizePx: $minFirstPaneSizePx\n" +
+                        "availableSpace - minSecondPaneSizePx: ${availableSpace - minSecondPaneSizePx}\n" +
+                        "Please, adjust the panes sizes."
+                )
+                // I'm adding this to have something meaningful in the error dialog
+                IllegalStateException("Not enough space for first pane")
             }
             val firstSize: Int = firstGap
                 .roundToInt()
@@ -204,6 +218,7 @@ public fun SplitLayout2(
                         dividerHandlePlaceable.placeRelative(firstSize - handleWidth / 2, 0)
                         secondPlaceable.placeRelative(firstSize + dividerWidth, 0)
                     }
+
                     Orientation.Horizontal -> {
                         dividerPlaceable.placeRelative(0, firstSize)
                         dividerHandlePlaceable.placeRelative(0, firstSize - handleWidth / 2)
