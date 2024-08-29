@@ -1,5 +1,6 @@
 package org.jetbrains.jewel.ui.component
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -79,7 +80,10 @@ public fun SplitLayout2(
 
             Divider(
                 orientation = dividerOrientation,
-                modifier = Modifier.then(fillMaxDirection).layoutId("divider"),
+                modifier = Modifier
+                    .then(fillMaxDirection)
+                    .layoutId("divider")
+                    .focusable(false),
                 color = dividerColor,
                 thickness = dividerThickness,
             )
@@ -100,6 +104,7 @@ public fun SplitLayout2(
                     )
                     .pointerHoverIcon(PointerIcon(cursor))
                     .layoutId("divider-handle")
+                    .focusable(false)
             )
         }
     ) { measurables, constraints ->

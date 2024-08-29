@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,19 +34,18 @@ import org.jetbrains.jewel.ui.ComponentStyling
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.SplitLayout2
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.component.splitlayout.horizontalTwoPaneStrategy
 import org.jetbrains.jewel.window.DecoratedWindow
-import org.jetbrains.skiko.SystemTheme
-import org.jetbrains.skiko.currentSystemTheme
 
 fun main() {
     application {
         val textStyle = JewelTheme.createDefaultTextStyle(fontFamily = FontFamily.Inter)
         val editorStyle = JewelTheme.createEditorTextStyle(fontFamily = FontFamily.JetBrainsMono)
-        var theme: IntUiThemes by remember { mutableStateOf(IntUiThemes.Light) }
+        var theme: UiThemes by remember { mutableStateOf(UiThemes.Light) }
 
         val themeDefinition =
-            if (theme == IntUiThemes.Dark) {
+            if (theme == UiThemes.Dark) {
                 JewelTheme.darkThemeDefinition(defaultTextStyle = textStyle, editorTextStyle = editorStyle)
             } else {
                 JewelTheme.lightThemeDefinition(defaultTextStyle = textStyle, editorTextStyle = editorStyle)
@@ -59,20 +59,19 @@ fun main() {
                 onCloseRequest = { exitApplication() },
                 title = "Jewel playground",
                 state =
-                    rememberWindowState(
-                        size = DpSize(1000.dp, 600.dp),
-                        position = WindowPosition(Alignment.Center),
-                    ),
+                rememberWindowState(
+                    size = DpSize(1000.dp, 600.dp),
+                    position = WindowPosition(Alignment.Center),
+                ),
                 content = {
                     Column {
                         CheckboxRow(
-                            checked = theme == IntUiThemes.Dark,
+                            checked = theme == UiThemes.Dark,
                             onCheckedChange = {
                                 theme =
                                     when (theme) {
-                                        IntUiThemes.Dark -> IntUiThemes.Light
-                                        IntUiThemes.Light -> IntUiThemes.Dark
-                                        IntUiThemes.System -> TODO()
+                                        UiThemes.Dark -> UiThemes.Light
+                                        UiThemes.Light -> UiThemes.Dark
                                     }
                             },
                         ) {
@@ -86,13 +85,14 @@ fun main() {
                                 first = {
                                     Box(
                                         modifier =
-                                            Modifier
-                                                .fillMaxSize()
-                                                .background(JewelTheme.globalColors.panelBackground)
-                                                .padding(16.dp),
+                                        Modifier
+                                            .fillMaxSize()
+                                            .background(JewelTheme.globalColors.panelBackground)
+                                            .padding(16.dp),
                                         contentAlignment = Alignment.Center,
                                     ) {
-                                        Text("Left Panel Content")
+                                        val state by remember { mutableStateOf(TextFieldState()) }
+                                        TextField(state, placeholder = { Text("Placeholder") })
                                     }
                                 },
                                 second = {
@@ -100,42 +100,44 @@ fun main() {
                                         first = {
                                             Box(
                                                 modifier =
-                                                    Modifier
-                                                        .fillMaxSize()
-                                                        .background(JewelTheme.globalColors.panelBackground)
-                                                        .padding(16.dp),
+                                                Modifier
+                                                    .fillMaxSize()
+                                                    .background(JewelTheme.globalColors.panelBackground)
+                                                    .padding(16.dp),
                                                 contentAlignment = Alignment.Center,
                                             ) {
-                                                Text("Nested - Left Panel Content")
+                                                val state by remember { mutableStateOf(TextFieldState()) }
+                                                TextField(state, placeholder = { Text("Nested - Left Panel Content") })
                                             }
                                         },
                                         second = {
                                             Box(
                                                 modifier =
-                                                    Modifier
-                                                        .fillMaxSize()
-                                                        .background(JewelTheme.globalColors.panelBackground)
-                                                        .padding(16.dp),
+                                                Modifier
+                                                    .fillMaxSize()
+                                                    .background(JewelTheme.globalColors.panelBackground)
+                                                    .padding(16.dp),
                                                 contentAlignment = Alignment.Center,
                                             ) {
-                                                Text("Nested - Right Panel Content")
+                                                val state by remember { mutableStateOf(TextFieldState()) }
+                                                TextField(state, placeholder = { Text("Nested - Right Panel Content") })
                                             }
                                         },
                                         strategy =
-                                            horizontalTwoPaneStrategy(
-                                                initialSplitFraction = 0.5f,
-                                                gapWidth = 1.dp,
-                                            ),
+                                        horizontalTwoPaneStrategy(
+                                            initialSplitFraction = 0.5f,
+                                            gapWidth = 1.dp,
+                                        ),
                                         modifier = Modifier.fillMaxSize(),
                                         minFirstPaneSize = 200.dp,
                                         minSecondPaneSize = 100.dp,
                                     )
                                 },
                                 strategy =
-                                    horizontalTwoPaneStrategy(
-                                        initialSplitFraction = 0.5f,
-                                        gapWidth = 1.dp,
-                                    ),
+                                horizontalTwoPaneStrategy(
+                                    initialSplitFraction = 0.5f,
+                                    gapWidth = 1.dp,
+                                ),
                                 modifier = Modifier.fillMaxSize(),
                                 minFirstPaneSize = 100.dp,
                                 minSecondPaneSize = 302.dp,
@@ -148,15 +150,7 @@ fun main() {
     }
 }
 
-enum class IntUiThemes {
+enum class UiThemes {
     Light,
-    Dark,
-    System,
-    ;
-
-    fun isDark() = (if (this == System) fromSystemTheme(currentSystemTheme) else this) == Dark
-
-    companion object {
-        fun fromSystemTheme(systemTheme: SystemTheme) = if (systemTheme == SystemTheme.LIGHT) Light else Dark
-    }
+    Dark
 }
