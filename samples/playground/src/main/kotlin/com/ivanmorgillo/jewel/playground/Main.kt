@@ -1,10 +1,18 @@
 package com.ivanmorgillo.jewel.playground
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -17,22 +25,31 @@ import org.jetbrains.jewel.intui.standalone.JetBrainsMono
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.intui.standalone.theme.createDefaultTextStyle
 import org.jetbrains.jewel.intui.standalone.theme.createEditorTextStyle
+import org.jetbrains.jewel.intui.standalone.theme.darkThemeDefinition
 import org.jetbrains.jewel.intui.standalone.theme.default
 import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
 import org.jetbrains.jewel.intui.window.decoratedWindow
 import org.jetbrains.jewel.ui.ComponentStyling
+import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.SplitLayout2
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.splitlayout.horizontalTwoPaneStrategy
 import org.jetbrains.jewel.window.DecoratedWindow
+import org.jetbrains.skiko.SystemTheme
+import org.jetbrains.skiko.currentSystemTheme
 
 fun main() {
     application {
         val textStyle = JewelTheme.createDefaultTextStyle(fontFamily = FontFamily.Inter)
         val editorStyle = JewelTheme.createEditorTextStyle(fontFamily = FontFamily.JetBrainsMono)
+        var theme: IntUiThemes by remember { mutableStateOf(IntUiThemes.Light) }
 
         val themeDefinition =
-            JewelTheme.lightThemeDefinition(defaultTextStyle = textStyle, editorTextStyle = editorStyle)
+            if (theme == IntUiThemes.Dark) {
+                JewelTheme.darkThemeDefinition(defaultTextStyle = textStyle, editorTextStyle = editorStyle)
+            } else {
+                JewelTheme.lightThemeDefinition(defaultTextStyle = textStyle, editorTextStyle = editorStyle)
+            }
 
         IntUiTheme(
             theme = themeDefinition,
@@ -47,34 +64,75 @@ fun main() {
                         position = WindowPosition(Alignment.Center),
                     ),
                 content = {
-                    SplitLayout2(
-                        first = {
-                            Box(
-                                modifier = Modifier.fillMaxSize().padding(16.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text("Left Panel Content")
-                            }
-                        },
-                        second = {
-                            Box(
-                                modifier = Modifier.fillMaxSize().padding(16.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text("Right Panel Content")
-                            }
-                        },
-                        strategy =
-                            horizontalTwoPaneStrategy(
-                                initialSplitFraction = 0.5f,
-                                gapWidth = 1.dp,
-                            ),
-                        modifier = Modifier.fillMaxSize(),
-                        minFirstPaneSize = 300.dp,
-                        minSecondPaneSize = 100.dp,
-                    )
+                    Column {
+                        CheckboxRow(
+                            checked = theme == IntUiThemes.Dark,
+                            onCheckedChange = {
+                                theme =
+                                    when (theme) {
+                                        IntUiThemes.Dark -> IntUiThemes.Light
+                                        IntUiThemes.Light -> IntUiThemes.Dark
+                                        IntUiThemes.System -> TODO()
+                                    }
+                            },
+                        ) {
+                            Text("Dark Theme")
+                        }
+
+                        Box(
+                            Modifier.fillMaxSize().border(1.dp, Color.Red),
+                        ) {
+                            SplitLayout2(
+                                first = {
+                                    Box(
+                                        modifier =
+                                            Modifier
+                                                .fillMaxSize()
+                                                .background(JewelTheme.globalColors.panelBackground)
+                                                .padding(16.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Text("Left Panel Content")
+                                    }
+                                },
+                                second = {
+                                    Box(
+                                        modifier =
+                                            Modifier
+                                                .fillMaxSize()
+                                                .background(JewelTheme.globalColors.panelBackground)
+                                                .padding(16.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Text("Right Panel Content")
+                                    }
+                                },
+                                strategy =
+                                    horizontalTwoPaneStrategy(
+                                        initialSplitFraction = 0.5f,
+                                        gapWidth = 1.dp,
+                                    ),
+                                modifier = Modifier.fillMaxSize(),
+                                minFirstPaneSize = 300.dp,
+                                minSecondPaneSize = 100.dp,
+                            )
+                        }
+                    }
                 },
             )
         }
+    }
+}
+
+enum class IntUiThemes {
+    Light,
+    Dark,
+    System,
+    ;
+
+    fun isDark() = (if (this == System) fromSystemTheme(currentSystemTheme) else this) == Dark
+
+    companion object {
+        fun fromSystemTheme(systemTheme: SystemTheme) = if (systemTheme == SystemTheme.LIGHT) Light else Dark
     }
 }
