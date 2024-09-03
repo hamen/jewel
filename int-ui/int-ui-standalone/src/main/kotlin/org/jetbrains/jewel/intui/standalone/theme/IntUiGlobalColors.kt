@@ -15,13 +15,7 @@ public fun GlobalColors.Companion.light(
     outlines: OutlineColors = OutlineColors.light(),
     text: TextColors = TextColors.light(),
     paneBackground: Color = IntUiLightTheme.colors.gray(13),
-): GlobalColors =
-    GlobalColors(
-        borders = borders,
-        outlines = outlines,
-        text = text,
-        panelBackground = paneBackground,
-    )
+): GlobalColors = GlobalColors(borders = borders, outlines = outlines, text = text, panelBackground = paneBackground)
 
 @Composable
 public fun GlobalColors.Companion.dark(
@@ -29,24 +23,18 @@ public fun GlobalColors.Companion.dark(
     outlines: OutlineColors = OutlineColors.dark(),
     text: TextColors = TextColors.dark(),
     paneBackground: Color = IntUiDarkTheme.colors.gray(2),
-): GlobalColors =
-    GlobalColors(
-        borders = borders,
-        outlines = outlines,
-        text = text,
-        panelBackground = paneBackground,
-    )
+): GlobalColors = GlobalColors(borders = borders, outlines = outlines, text = text, panelBackground = paneBackground)
 
 @Composable
 public fun BorderColors.Companion.light(
-    normal: Color = IntUiLightTheme.colors.gray(9),
+    normal: Color = IntUiLightTheme.colors.gray(12),
     focused: Color = IntUiLightTheme.colors.gray(14),
     disabled: Color = IntUiLightTheme.colors.gray(11),
 ): BorderColors = BorderColors(normal, focused, disabled)
 
 @Composable
 public fun BorderColors.Companion.dark(
-    normal: Color = IntUiDarkTheme.colors.gray(5),
+    normal: Color = IntUiDarkTheme.colors.gray(1),
     focused: Color = IntUiDarkTheme.colors.gray(2),
     disabled: Color = IntUiDarkTheme.colors.gray(4),
 ): BorderColors = BorderColors(normal, focused, disabled)
