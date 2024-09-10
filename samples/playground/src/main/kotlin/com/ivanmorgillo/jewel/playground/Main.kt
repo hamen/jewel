@@ -1,9 +1,10 @@
 package com.ivanmorgillo.jewel.playground
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,8 +27,7 @@ import org.jetbrains.jewel.intui.standalone.theme.default
 import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
 import org.jetbrains.jewel.intui.window.decoratedWindow
 import org.jetbrains.jewel.ui.ComponentStyling
-import org.jetbrains.jewel.ui.component.ContextMenuDivider.onClick
-import org.jetbrains.jewel.ui.component.OutlinedButton
+import org.jetbrains.jewel.ui.component.ComboBox
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.window.DecoratedWindow
 
@@ -39,26 +39,27 @@ fun main() {
         val themeDefinition =
             JewelTheme.lightThemeDefinition(defaultTextStyle = textStyle, editorTextStyle = editorStyle)
 
-        IntUiTheme(
-            theme = themeDefinition,
-            styling = ComponentStyling.default().decoratedWindow(),
-        ) {
+        IntUiTheme(theme = themeDefinition, styling = ComponentStyling.default().decoratedWindow()) {
             DecoratedWindow(
                 onCloseRequest = { exitApplication() },
                 title = "Jewel playground",
-                state = rememberWindowState(
-                    size = DpSize(1000.dp, 600.dp),
-                    position = WindowPosition(Alignment.Center),
-                ),
+                state =
+                    rememberWindowState(size = DpSize(1000.dp, 600.dp), position = WindowPosition(Alignment.Center)),
                 content = {
-                    var counter by remember { mutableStateOf(0) }
-                    Box(
-                        modifier = Modifier.fillMaxSize().padding(8.dp),
-                        contentAlignment = Alignment.TopStart,
-                    ) {
-                        OutlinedButton(onClick = { counter++ }) {
-                            Text("Clicked $counter times")
-                        }
+                    val items = remember { listOf("Light", "Dark", "High Contrast", "Darcula", "IntelliJ Light") }
+                    var selected: String? by remember { mutableStateOf(items.first()) }
+                    val inputTextFieldState = rememberTextFieldState(items.first())
+
+                    Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = "Selected item: $selected")
+                        Text(text = "Input text: ${inputTextFieldState.text}")
+                        ComboBox(
+                            items = items,
+                            textFieldState = inputTextFieldState,
+                            selectedItem = selected,
+                            onItemSelect = { selected = it },
+                            content = { item -> Text(item) },
+                        )
                     }
                 },
             )
