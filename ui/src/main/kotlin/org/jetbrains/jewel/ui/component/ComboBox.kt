@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -33,6 +33,7 @@ import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import org.jetbrains.jewel.foundation.Stroke
 import org.jetbrains.jewel.foundation.modifier.border
@@ -44,6 +45,7 @@ import org.jetbrains.jewel.foundation.state.CommonStateBitMask.Pressed
 import org.jetbrains.jewel.foundation.state.FocusableComponentState
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalContentColor
+import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.styling.DropdownStyle
 import org.jetbrains.jewel.ui.focusOutline
@@ -88,7 +90,9 @@ public fun ComboBox(
     val metrics = style.metrics
     val shape = RoundedCornerShape(style.metrics.cornerSize)
     val minSize = metrics.minSize
-    val arrowMinSize = style.metrics.arrowMinSize
+    // TODO: Different from Dropdown. We should create a new style for this
+    // val arrowMinSize = style.metrics.arrowMinSize
+    val arrowMinSize = DpSize(21.dp, 22.dp)
     val borderColor by colors.borderFor(dropdownState)
     val hasNoOutline = outline == Outline.None
 
@@ -133,9 +137,18 @@ public fun ComboBox(
             )
 
             Box(
-                modifier = Modifier.size(arrowMinSize).align(Alignment.CenterEnd),
+                modifier =
+                    Modifier.height(IntrinsicSize.Min)
+                        .defaultMinSize(arrowMinSize.width, arrowMinSize.height)
+                        .align(Alignment.CenterEnd),
                 contentAlignment = Alignment.Center,
             ) {
+                Divider(
+                    orientation = Orientation.Vertical,
+                    thickness = metrics.borderWidth,
+                    color = borderColor,
+                    modifier = Modifier.align(Alignment.CenterStart),
+                )
                 Icon(
                     key = style.icons.chevronDown,
                     contentDescription = null,
