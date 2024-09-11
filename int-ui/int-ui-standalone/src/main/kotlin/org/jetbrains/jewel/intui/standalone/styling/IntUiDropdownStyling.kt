@@ -246,7 +246,7 @@ public object IntUiUndecoratedDropdownColorsFactory {
 public fun DropdownMetrics.Companion.default(
     arrowMinSize: DpSize = DpSize((23 + 3).dp, 24.dp),
     minSize: DpSize = DpSize((49 + 23 + 6).dp, 24.dp),
-    cornerSize: CornerSize = CornerSize(4.dp),
+    cornerSize: CornerSize = CornerSize(3.dp),
     contentPadding: PaddingValues = PaddingValues(horizontal = 6.dp, vertical = 3.dp),
     borderWidth: Dp = 1.dp,
 ): DropdownMetrics = DropdownMetrics(arrowMinSize, minSize, cornerSize, contentPadding, borderWidth)
@@ -254,7 +254,7 @@ public fun DropdownMetrics.Companion.default(
 public fun DropdownMetrics.Companion.undecorated(
     arrowMinSize: DpSize = DpSize((23 + 3).dp, 24.dp),
     minSize: DpSize = DpSize((49 + 23 + 6).dp, 24.dp),
-    cornerSize: CornerSize = CornerSize(4.dp),
+    cornerSize: CornerSize = CornerSize(3.dp),
     contentPadding: PaddingValues = PaddingValues(horizontal = 6.dp, vertical = 3.dp),
     borderWidth: Dp = 0.dp,
 ): DropdownMetrics = DropdownMetrics(arrowMinSize, minSize, cornerSize, contentPadding, borderWidth)
