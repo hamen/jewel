@@ -76,7 +76,7 @@ public fun ComboBox(
                 is PressInteraction.Press -> dropdownState = dropdownState.copy(pressed = true)
                 is PressInteraction.Cancel,
                 is PressInteraction.Release -> dropdownState = dropdownState.copy(pressed = false)
-                is HoverInteraction.Enter -> dropdownState = dropdownState.copy(hovered = true)
+                is HoverInteraction.Enter -> dropdownState = dropdownState.copy(hovered = false)
                 is HoverInteraction.Exit -> dropdownState = dropdownState.copy(hovered = false)
                 is FocusInteraction.Focus -> dropdownState = dropdownState.copy(focused = true)
                 is FocusInteraction.Unfocus -> dropdownState = dropdownState.copy(focused = false)
