@@ -110,7 +110,7 @@ public fun ComboBox(
                     indication = null,
                 )
                 .background(colors.backgroundFor(dropdownState).value, shape)
-                .thenIf(hasNoOutline) { border(Stroke.Alignment.Center, style.metrics.borderWidth, borderColor, shape) }
+                .thenIf(hasNoOutline) { border(Stroke.Alignment.Inside, style.metrics.borderWidth, borderColor, shape) }
                 .thenIf(outline == Outline.None) { focusOutline(dropdownState, shape) }
                 .outline(dropdownState, outline, shape)
                 .width(IntrinsicSize.Max)
