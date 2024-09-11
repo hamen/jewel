@@ -3,10 +3,11 @@ package com.ivanmorgillo.jewel.playground
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,7 +33,6 @@ import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
 import org.jetbrains.jewel.intui.window.decoratedWindow
 import org.jetbrains.jewel.ui.ComponentStyling
 import org.jetbrains.jewel.ui.component.ComboBox
-import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.separator
 import org.jetbrains.jewel.window.DecoratedWindow
@@ -64,15 +64,6 @@ fun main() {
                         Text(text = "Input text: ${inputTextFieldState.text}")
                         Text(text = "ComboBox")
                         ComboBox(
-                            items = items,
-                            textFieldState = inputTextFieldState,
-                            selectedItem = selected,
-                            onItemSelect = { selected = it },
-                            content = { item -> Text(item) },
-                        )
-                        Spacer(Modifier.height(16.dp))
-                        Text(text = "Dropdown")
-                        Dropdown(
                             menuContent = {
                                 items.forEach {
                                     if (it == "---") {
@@ -85,7 +76,11 @@ fun main() {
                                 }
                             }
                         ) {
-                            Text(selected ?: "Nothing selected")
+                            BasicTextField(
+                                state = inputTextFieldState,
+                                modifier = Modifier.fillMaxWidth(),
+                                lineLimits = TextFieldLineLimits.SingleLine,
+                            )
                         }
                     }
                 },

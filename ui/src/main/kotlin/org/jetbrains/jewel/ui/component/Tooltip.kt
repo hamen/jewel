@@ -33,12 +33,12 @@ import org.jetbrains.jewel.ui.util.isDark
 /**
  * Displays a tooltip when hovering over the content.
  *
- * The tooltip is displayed when the mouse hovers over the content for a [kotlin.time.Duration]
- * specified by the [TooltipMetrics.showDelay] property in the [TooltipStyle].
+ * The tooltip is displayed when the mouse hovers over the content for a [kotlin.time.Duration] specified by the
+ * [TooltipMetrics.showDelay] property in the [TooltipStyle].
  *
- * The placement is fixed by default, enforced by the [FixedCursorPoint] placement.
- * The tooltip won't follow the mouse cursor, when moving over the content,
- * and it will be displayed indefinitely as long as the mouse is hovering over the content.
+ * The placement is fixed by default, enforced by the [FixedCursorPoint] placement. The tooltip won't follow the mouse
+ * cursor, when moving over the content, and it will be displayed indefinitely as long as the mouse is hovering over the
+ * content.
  *
  * @param tooltip The Composable function that defines the tooltip content. For example, `Text("I'm a tooltip")`.
  * @param modifier The modifier to be applied to the tooltip component.
