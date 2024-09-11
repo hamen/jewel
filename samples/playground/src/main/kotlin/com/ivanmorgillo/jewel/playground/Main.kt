@@ -4,10 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,24 +61,25 @@ fun main() {
                         Text(text = "Input text: ${inputTextFieldState.text}")
                         Text(text = "ComboBox")
                         ComboBox(
+                            inputTextFieldState = inputTextFieldState,
                             menuContent = {
                                 items.forEach {
                                     if (it == "---") {
                                         separator()
                                     } else {
-                                        selectableItem(selected = selected == it, onClick = { selected = it }) {
+                                        selectableItem(
+                                            selected = selected == it,
+                                            onClick = {
+                                                selected = it
+                                                inputTextFieldState.edit { replace(0, length, it) }
+                                            },
+                                        ) {
                                             Text(it)
                                         }
                                     }
                                 }
-                            }
-                        ) {
-                            BasicTextField(
-                                state = inputTextFieldState,
-                                modifier = Modifier.fillMaxWidth(),
-                                lineLimits = TextFieldLineLimits.SingleLine,
-                            )
-                        }
+                            },
+                        )
                     }
                 },
             )

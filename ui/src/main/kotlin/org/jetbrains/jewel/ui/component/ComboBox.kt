@@ -7,7 +7,6 @@ import androidx.compose.foundation.interaction.HoverInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -53,13 +55,13 @@ import org.jetbrains.jewel.ui.util.thenIf
 @Composable
 public fun ComboBox(
     modifier: Modifier = Modifier,
+    inputTextFieldState: TextFieldState,
     enabled: Boolean = true,
     menuModifier: Modifier = Modifier,
     outline: Outline = Outline.None,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     style: DropdownStyle = JewelTheme.dropdownStyle,
     menuContent: MenuScope.() -> Unit,
-    content: @Composable BoxScope.() -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var skipNextClick by remember { mutableStateOf(false) }
@@ -121,7 +123,13 @@ public fun ComboBox(
                 modifier =
                     Modifier.fillMaxWidth().padding(style.metrics.contentPadding).padding(end = arrowMinSize.width),
                 contentAlignment = Alignment.CenterStart,
-                content = content,
+                content = {
+                    BasicTextField(
+                        state = inputTextFieldState,
+                        modifier = Modifier.fillMaxWidth(),
+                        lineLimits = TextFieldLineLimits.SingleLine,
+                    )
+                },
             )
 
             Box(
