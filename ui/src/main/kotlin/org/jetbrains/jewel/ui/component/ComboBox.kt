@@ -50,7 +50,6 @@ import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.styling.DropdownStyle
 import org.jetbrains.jewel.ui.focusOutline
 import org.jetbrains.jewel.ui.outline
-import org.jetbrains.jewel.ui.painter.hints.Stateful
 import org.jetbrains.jewel.ui.theme.dropdownStyle
 import org.jetbrains.jewel.ui.util.thenIf
 
@@ -118,7 +117,7 @@ public fun ComboBox(
                 .thenIf(outline == Outline.None) { focusOutline(dropdownState, shape) }
                 .outline(dropdownState, outline, shape)
                 .width(IntrinsicSize.Max)
-                .defaultMinSize(minSize.width, minSize.height.coerceAtLeast(arrowMinSize.height))
+                .defaultMinSize(minSize.width, minSize.height)
                 .onSizeChanged { componentWidth = it.width },
         contentAlignment = Alignment.CenterStart,
     ) {
@@ -146,15 +145,10 @@ public fun ComboBox(
                 Divider(
                     orientation = Orientation.Vertical,
                     thickness = metrics.borderWidth,
-                    color = borderColor,
+                    color = colors.border,
                     modifier = Modifier.align(Alignment.CenterStart),
                 )
-                Icon(
-                    key = style.icons.chevronDown,
-                    contentDescription = null,
-                    tint = colors.iconTintFor(dropdownState).value,
-                    hint = Stateful(dropdownState),
-                )
+                Icon(key = style.icons.chevronDown, contentDescription = null, tint = colors.iconTint)
             }
         }
 
