@@ -63,23 +63,23 @@ public fun ComboBox(
     style: DropdownStyle = JewelTheme.dropdownStyle,
     menuContent: MenuScope.() -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
     var skipNextClick by remember { mutableStateOf(false) }
 
-    var dropdownState by remember(interactionSource) { mutableStateOf(DropdownState.of(enabled = enabled)) }
+    var popupExpanded by remember { mutableStateOf(false) }
+    var comboBoxState by remember(interactionSource) { mutableStateOf(DropdownState.of(enabled = enabled)) }
 
-    remember(enabled) { dropdownState = dropdownState.copy(enabled = enabled) }
+    remember(enabled) { comboBoxState = comboBoxState.copy(enabled = enabled) }
 
     LaunchedEffect(interactionSource) {
         interactionSource.interactions.collect { interaction ->
             when (interaction) {
-                is PressInteraction.Press -> dropdownState = dropdownState.copy(pressed = true)
+                is PressInteraction.Press -> comboBoxState = comboBoxState.copy(pressed = true)
                 is PressInteraction.Cancel,
-                is PressInteraction.Release -> dropdownState = dropdownState.copy(pressed = false)
-                is HoverInteraction.Enter -> dropdownState = dropdownState.copy(hovered = false)
-                is HoverInteraction.Exit -> dropdownState = dropdownState.copy(hovered = false)
-                is FocusInteraction.Focus -> dropdownState = dropdownState.copy(focused = true)
-                is FocusInteraction.Unfocus -> dropdownState = dropdownState.copy(focused = false)
+                is PressInteraction.Release -> comboBoxState = comboBoxState.copy(pressed = false)
+                is HoverInteraction.Enter -> comboBoxState = comboBoxState.copy(hovered = false)
+                is HoverInteraction.Exit -> comboBoxState = comboBoxState.copy(hovered = false)
+                is FocusInteraction.Focus -> comboBoxState = comboBoxState.copy(focused = true)
+                is FocusInteraction.Unfocus -> comboBoxState = comboBoxState.copy(focused = false)
             }
         }
     }
@@ -89,7 +89,7 @@ public fun ComboBox(
     val shape = RoundedCornerShape(style.metrics.cornerSize)
     val minSize = metrics.minSize
     val arrowMinSize = style.metrics.arrowMinSize
-    val borderColor by colors.borderFor(dropdownState)
+    val borderColor by colors.borderFor(comboBoxState)
     val hasNoOutline = outline == Outline.None
 
     var componentWidth by remember { mutableIntStateOf(-1) }
@@ -100,7 +100,7 @@ public fun ComboBox(
                     onClick = {
                         // TODO: Trick to skip click event when close menu by click dropdown
                         if (!skipNextClick) {
-                            expanded = !expanded
+                            popupExpanded = !popupExpanded
                         }
                         skipNextClick = false
                     },
@@ -109,7 +109,7 @@ public fun ComboBox(
                     interactionSource = interactionSource,
                     indication = null,
                 )
-                .background(colors.backgroundFor(dropdownState).value, shape)
+                .background(colors.backgroundFor(comboBoxState).value, shape)
                 .thenIf(hasNoOutline) {
                     border(
                         alignment = Stroke.Alignment.Inside,
@@ -119,24 +119,20 @@ public fun ComboBox(
                     )
                 }
                 .thenIf(outline == Outline.None) {
-                    focusOutline(
-                        state = dropdownState,
-                        outlineShape = shape,
-                        alignment = Stroke.Alignment.Center,
-                    )
+                    focusOutline(state = comboBoxState, outlineShape = shape, alignment = Stroke.Alignment.Center)
                 }
                 .outline(
-                    state = dropdownState,
+                    state = comboBoxState,
                     outline = outline,
                     outlineShape = shape,
-                    alignment = Stroke.Alignment.Outside
+                    alignment = Stroke.Alignment.Center,
                 )
                 .width(IntrinsicSize.Max)
                 .defaultMinSize(minSize.width, minSize.height)
                 .onSizeChanged { componentWidth = it.width },
         contentAlignment = Alignment.CenterStart,
     ) {
-        CompositionLocalProvider(LocalContentColor provides colors.contentFor(dropdownState).value) {
+        CompositionLocalProvider(LocalContentColor provides colors.contentFor(comboBoxState).value) {
             Box(
                 modifier =
                     Modifier.fillMaxWidth().padding(style.metrics.contentPadding).padding(end = arrowMinSize.width),
@@ -161,18 +157,21 @@ public fun ComboBox(
                     orientation = Orientation.Vertical,
                     thickness = metrics.borderWidth,
                     color = colors.border,
-                    modifier = Modifier.align(Alignment.CenterStart),
+                    modifier =
+                        Modifier.align(Alignment.CenterStart).thenIf(comboBoxState.isFocused) {
+                            padding(vertical = 1.dp)
+                        },
                 )
                 Icon(key = style.icons.chevronDown, contentDescription = null, tint = colors.iconTint)
             }
         }
 
-        if (expanded) {
+        if (popupExpanded) {
             val density = LocalDensity.current
             PopupMenu(
                 onDismissRequest = {
-                    expanded = false
-                    if (it == InputMode.Touch && dropdownState.isHovered) {
+                    popupExpanded = false
+                    if (it == InputMode.Touch && comboBoxState.isHovered) {
                         skipNextClick = true
                     }
                     true
