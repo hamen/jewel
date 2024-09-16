@@ -33,7 +33,6 @@ import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import org.jetbrains.jewel.foundation.Stroke
 import org.jetbrains.jewel.foundation.modifier.border
@@ -89,9 +88,7 @@ public fun ComboBox(
     val metrics = style.metrics
     val shape = RoundedCornerShape(style.metrics.cornerSize)
     val minSize = metrics.minSize
-    // TODO: Different from Dropdown. We should create a new style for this
-    // val arrowMinSize = style.metrics.arrowMinSize
-    val arrowMinSize = DpSize(21.dp, 22.dp)
+    val arrowMinSize = style.metrics.arrowMinSize
     val borderColor by colors.borderFor(dropdownState)
     val hasNoOutline = outline == Outline.None
 
@@ -113,9 +110,27 @@ public fun ComboBox(
                     indication = null,
                 )
                 .background(colors.backgroundFor(dropdownState).value, shape)
-                .thenIf(hasNoOutline) { border(Stroke.Alignment.Inside, style.metrics.borderWidth, borderColor, shape) }
-                .thenIf(outline == Outline.None) { focusOutline(dropdownState, shape) }
-                .outline(dropdownState, outline, shape)
+                .thenIf(hasNoOutline) {
+                    border(
+                        alignment = Stroke.Alignment.Inside,
+                        width = style.metrics.borderWidth,
+                        color = borderColor,
+                        shape = shape,
+                    )
+                }
+                .thenIf(outline == Outline.None) {
+                    focusOutline(
+                        state = dropdownState,
+                        outlineShape = shape,
+                        alignment = Stroke.Alignment.Center,
+                    )
+                }
+                .outline(
+                    state = dropdownState,
+                    outline = outline,
+                    outlineShape = shape,
+                    alignment = Stroke.Alignment.Outside
+                )
                 .width(IntrinsicSize.Max)
                 .defaultMinSize(minSize.width, minSize.height)
                 .onSizeChanged { componentWidth = it.width },
